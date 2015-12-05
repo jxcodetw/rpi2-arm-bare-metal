@@ -18,7 +18,7 @@ string.o: lib/string.c lib/string.h
 	$(CC) $(CFLAG) -c lib/string.c -o lib/string.o
 
 kernel.o: kernel.c
-	$(CC) $(CFLAG) -c kernel.c -o kernel.o 
+	$(CC) $(CFLAG) -c kernel.c -o kernel.o
 
 clean:
 	rm -rf *.o
