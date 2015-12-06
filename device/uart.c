@@ -46,6 +46,7 @@ void uart_init()
     mmio_write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
 }
 
+
 void uart_putc(unsigned char byte)
 {
     // Wait for UART to become ready to transmit.
