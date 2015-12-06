@@ -29,5 +29,6 @@ clean:
 	rm -rf *.o
 	rm -rf lib/*.o
 	rm -rf device/*.o
+	rm -rf device/*.gch
 	rm kernel.elf
 	rm kernel.img

@@ -24,6 +24,15 @@ void print_hex(unsigned int addr) {
     uart_putc('\n');
 }
 
+unsigned int getcpsr() {
+    unsigned int retval = 0xdeadbeef;
+    asm(
+        "mov %0, #0x13;"
+        : "=r"(retval)
+    );
+    return retval;
+}
+
 void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
 {
     (void)r0;
@@ -33,36 +42,57 @@ void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
     char c;
     unsigned int b = 0;
     uart_init();
+    mmu_init();
     uart_puts("Hello, Kernel World!\r\n");
 
     while(true) {
         c = uart_getc();
         if (c == '4') {
-            b = 0;
-            asm volatile(
-                "mrs %0, cpsr;"
-                : "=r"(b)
-            );
+            b = getcpsr();
             print_hex(b);
         } else if (c == '5') {
+            uart_puts("domain: ");
             asm volatile(
-                "mrs r0, cpsr;"
-                "bic r0, r0, #0x1f;"
-                "orr r0, r0, #0xd6;"
-                "msr cpsr, r0;"
-                :::"r0"
+                "mrc p15, 0, %0, c3, c0, 0;"
+                :"=r"(b)::"r0"
             );
+            print_hex(b);
+            uart_puts("   ttb: ");
+            asm volatile(
+                "mrc p15, 0, %0, c2, c0, 0;"
+                :"=r"(b)::"r0"
+            );
+            print_hex(b);
         } else if (c == '6') {
+            uart_puts("c1: ");
             asm volatile(
-                "mrs r0, cpsr;"
-                "bic r0, r0, #0x1f;"
-                "orr r0, r0, #0xd3;"
-                "msr cpsr, r0;"
-                :::"r0"
+                "mrc p15, 0, r0, c1, c0, 0;"
+                "mov %0, r0;"
+                :"=r"(b)::"r0"
             );
+            print_hex(b);
+        } else if (c == '7') {
+            asm volatile(
+                "mrc p15, 0, r0, c1, c0, 0;"
+                "orr r0, r0, #0x1;"
+                "mov %0, r0;"
+                "mcr p15, 0, r0, c1, c0, 0;"
+                :"=r"(b)::"r0"
+            );
+            print_hex(b);
+            uart_puts("mmu on!\r\n");
+        } else if (c == '8') {
+            asm volatile(
+                "mrc p15, 0, r0, c1, c0, 0;"
+                "bic r0, r0, #0x1;"
+                "mov %0, r0;"
+                "mcr p15, 0, r0, c1, c0, 0;"
+                :"=r"(b)::"r0"
+            );
+            print_hex(b);
+            uart_puts("mmu off!\r\n");
         } else {
             uart_putc(c);
         }
     }
-
 }
