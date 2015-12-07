@@ -20,13 +20,10 @@ void gen_mapping(unsigned int paddr,
     // map 1GB virt to phy one to one
     for(i=0;i<memsize>>20;++i) {
         pte = gen_l1_pte(paddr+(i<<20));
-        //pte |= 0x2; //[1:0] = 10
-        //pte |= 0x3 << 10; // AP[11:10]=11
-        //pte |= 0xf << 5; // Domain[8:5]=1111
         if (device == 0) {
             pte |= 0xDE2;
         } else {
-            pte |= 0xDE6;
+            pte |= 0xDE2;
         }
         pte_addr = gen_l1_pte_addr(L1_PTR_BASE_ADDR, vaddr+(i<<20));
         *(volatile unsigned int *)pte_addr = pte;
