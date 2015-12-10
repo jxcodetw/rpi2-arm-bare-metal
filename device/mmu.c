@@ -35,24 +35,39 @@ void mmu_init() {
     //unsigned int ttb = L1_PTR_BASE_ADDR;
     gen_mapping(PHYSICAL_MEM_ADDR, VIRTUAL_MEM_ADDR, MEM_MAP_SIZE, 0);
     gen_mapping(PHYSICAL_IO_ADDR, VIRTUAL_IO_ADDR, IO_MAP_SIZE, 1);
-    asm(
+    asm volatile(
+        // disable data cache
+        "mrc p15, #0, r0, c1, c0, #0;"
+        "bic r0, r0, #0x00000004;"
+        "mcr p15, #0, r0, c1, c0, #0;"
+        // disable instruction cache
+        "mrc p15, #0, r0, c1, c0, #0;"
+        "bic r0, r0, #0x00001000;"
+        "mcr p15, #0, r0, c1, c0, #0;"
+        // disable MMU
+        "mrc p15, #0, r0, c1, c0, #0;"
+        "bic r0, r0, #0x1;"
+        "mcr p15, #0, r0, c1, c0, #0;"
+        // invalidate tlb
+        "mcr p15, #0, r0, c8, c7, #0;"
+        // setup domain ttbr0
         "mov r0, #0xffffffff;"
         "mcr p15, 0, r0, c3, c0, 0;"
         "ldr r0, =0x30700000;"
         "mcr p15, 0, r0, c2, c0, 0;"
-        ::: "r0"
+
+        // enable mmu
+        "mrc p15, #0, r0, c1, c0, #0;"
+        "orr r0, r0, #0x1;"
+        "mcr p15, #0, r0, c1, c0, #0;"
+        // enable instruction cache
+        "mrc p15, #0, r0, c1, c0, #0;"
+        "orr r0, r0, #0x00001000;"
+        "mcr p15, #0, r0, c1, c0, #0;"
+        // enable data cache
+        "mrc p15, #0, r0, c1, c0, #0;"
+        "orr r0, r0, #0x00000004;"
+        "mcr p15, #0, r0, c1, c0, #0;"
     );
     uart_puts("done\r\n");
-    /*asm(
-        "mcr p15, 0, %0, c2, c0, 0;"
-        "mrc p15, 0, r0, c1, c0, 0;"
-        "orr r0, r0, #0x1;"
-        "mcr p15, 0, r0, c1, c0, 0;"
-        "mov r0, r0;"
-        "mov r0, r0;"
-        "mov r0, r0;"
-        :
-        : "r" (ttb)
-        : "r0"
-    );*/
 }

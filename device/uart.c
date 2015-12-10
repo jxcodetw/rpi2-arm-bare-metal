@@ -56,8 +56,8 @@ void uart_putc(unsigned char byte)
 void test_mmu_putc(unsigned char byte)
 {
     // Wait for UART to become ready to transmit.
-    while(mmio_read(UART0_FR+0x89000000) & (1 << 5));
-    mmio_write(UART0_DR+0x89000000, byte);
+    while(mmio_read(0xC8201018) & (1 << 5));
+    mmio_write(0xC8201000, byte);
 }
 
 void uart_puts(const char* str)
