@@ -8,7 +8,9 @@ OBJS = boot.o \
 	   kernel.o \
 	   lib/string.o \
 	   device/uart.o \
-	   device/mmu.o
+	   device/mmu.o  \
+	   device/timer.o \
+	   device/interrupts.o
 
 %.o: %.c
 	$(CC) $(CFLAG) -c -o $@ $<
