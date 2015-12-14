@@ -1,9 +1,10 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include "device/uart.h"
-#include "device/mmu.h"
-#include "device/timer.h"
-#include "device/interrupts.h"
+#ifndef RPI2
+    #include "device/rpi2.h"
+#else
+    #include "device/qemu.h"
+#endif
 
 void print_hex(unsigned int val) {
     char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
