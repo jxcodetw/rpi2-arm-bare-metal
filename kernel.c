@@ -5,8 +5,6 @@
 #include "device/timer.h"
 #include "device/interrupts.h"
 
-unsigned int *counter;
-
 void print_hex(unsigned int val) {
     char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     char number[8] = {'0','0','0','0','0','0','0','0'};
@@ -48,38 +46,24 @@ unsigned int getcp15c1() {
 
 void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
 {
-    counter = (unsigned int *)0x30700000;
     (void)r0;
     (void)r1;
     (void)atags;
 
     char c;
     uart_init();
-    print_hex(*counter);
-    *counter+=1;
     uart_puts("Hello, Kernel World!\r\n");
     //mmu_init();
-    *counter+=1;
     timer_init();
 
-
     while(true) {
-        *counter+=1;
-        print_hex(*counter);
-        uart_puts("before getc!\r\n");
         c = uart_getc();
-        uart_puts("after getc!\r\n");
         if (c == '0') {
-            uart_puts("enable_interrupt()...");
             enable_interrupts();
-            uart_puts("OK\r\n");
             break;
         } else {
             uart_putc(c);
         }
     }
-    uart_puts("outside!\r\n");
     while(1){}
-    uart_puts("outside2!\r\n");
-    //while(1){}
 }
