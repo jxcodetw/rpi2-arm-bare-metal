@@ -11,7 +11,7 @@ OBJS = \
 	lib/string.o \
 	\
 	kernel.o\
-    uart.o\
+	uart.o\
 	mmu.o\
 	timer.o\
 	interrupts.o
