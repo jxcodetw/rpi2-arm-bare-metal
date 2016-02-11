@@ -1,34 +1,40 @@
 CROSS=arm-none-eabi-
 CC=$(CROSS)gcc
 OBJCPY=$(CROSS)objcopy
-CFLAG=-mcpu=cortex-a7 -fpic -ffreestanding -std=gnu99 -O2 -Wall -Wextra
+CFLAGS=-mcpu=cortex-a7 -fpic -ffreestanding -std=gnu99 -O2 -Wall -Wextra
+ASFLAGS=-mcpu=cortex-a7 -fpic -ffreestanding
 BUILD_DIR=build
 
 OBJS = \
+	boot.o\
+	\
 	lib/string.o \
 	\
-	boot.o\
 	kernel.o\
     uart.o\
 	mmu.o\
 	timer.o\
 	interrupts.o
 
+quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
 build-directory = $(shell mkdir -p $(BUILD_DIR) $(BUILD_DIR)/lib)
 
 
 $(BUILD_DIR)/%.o: %.c
 	$(call build-directory)
-	$(CC) $(CFLAG) -c -o $@ $<
+	$(call quiet-command,$(CC) $(CFLAGS) \
+		-c -o $@ $<,"[CC] $(TARGET_DIR)$@")
 
 $(BUILD_DIR)/%.o: %.S
 	$(call build-directory)
-	$(CC) -mcpu=cortex-a7 -fpic -ffreestanding -c -o $@ $<
+	$(call quiet-command,$(CC) $(ASFLAGS) \
+		-c -o $@ $<,"[AS] $(TARGET_DIR)$@")
 
-RPI2: $(addprefix $(BUILD_DIR)/, $(OBJS)) linker.ld
-	$(CC) -T linker.ld -o $(BUILD_DIR)/kernel7.elf -ffreestanding -O2 -nostdlib $(addprefix $(BUILD_DIR)/, $(OBJS)) 
-	$(OBJCPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
+kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) linker.ld
+	$(call quiet-command, $(CC) -T linker.ld -o $(BUILD_DIR)/kernel7.elf -ffreestanding -O2 -nostdlib $(addprefix $(BUILD_DIR)/, $(OBJS)), "[Build] $(TARGET_DIR)$@")
+	@$(OBJCPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
+	@echo kernel image has been built.
 
 clean:
 	rm -rf build
-	rm kernel7.elf kernel7.img
+	rm kernel7.img
