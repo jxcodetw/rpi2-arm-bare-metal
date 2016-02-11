@@ -65,5 +65,12 @@ void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
             uart_putc(c);
         }
     }
-    while(1){}
+    while(1){
+        // after you input '0'
+        // it will break the above loop
+        // falls into this
+        // and when timer interrupt called
+        // it jumps to the interrupt handler and back here
+        uart_puts("never gonna let you down.");
+    }
 }

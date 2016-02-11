@@ -39,6 +39,7 @@ kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) linker.ld
 
 sd:
 	cp kernel7.img /media/removable/USB\ Drive/
+	cp kernel7.img /media/removable/USB\ Drive/kernel.img
 
 clean:
 	rm -rf build
