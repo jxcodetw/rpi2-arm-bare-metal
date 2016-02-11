@@ -3,6 +3,10 @@
 
 #include "types.h"
 
+// arm.c
+void cli(void);
+void sti(void);
+
 // string.c
 uint32 strlen(const char* str);
 

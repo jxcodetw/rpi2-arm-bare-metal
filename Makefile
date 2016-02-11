@@ -10,6 +10,7 @@ OBJS = \
 	\
 	lib/string.o \
 	\
+	arm.o\
 	uart.o\
 	mmu.o\
 	timer.o\
@@ -34,6 +35,7 @@ kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) linker.ld
 	$(call quiet-command, $(CC) -T linker.ld -o $(BUILD_DIR)/kernel7.elf -ffreestanding -O2 -nostdlib $(addprefix $(BUILD_DIR)/, $(OBJS)), "[Build] $(TARGET_DIR)$@")
 	@$(OBJCPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
 	@echo kernel image has been built.
+	@$(CROSS)objdump -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.dump
 
 clean:
 	rm -rf build

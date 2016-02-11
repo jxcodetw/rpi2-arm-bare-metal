@@ -1,3 +1,4 @@
+typedef int bool;
 typedef unsigned int   uint;
 typedef unsigned int   uint32;
 typedef unsigned short uint16;

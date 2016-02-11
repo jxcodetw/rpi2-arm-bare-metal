@@ -59,7 +59,7 @@ void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
     while(true) {
         c = uart_getc();
         if (c == '0') {
-            enable_interrupts();
+            sti();
             break;
         } else {
             uart_putc(c);
