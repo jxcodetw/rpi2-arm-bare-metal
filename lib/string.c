@@ -1,7 +1,7 @@
-#include <stddef.h>
+#include "types.h"
 
-size_t strlen(const char* str) {
-    size_t ret = 0;
+uint32 strlen(const char* str) {
+    uint32 ret = 0;
     while(str[ret] != 0) {
         ret++;
     }

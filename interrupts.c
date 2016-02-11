@@ -1,7 +1,7 @@
-#include <stdint.h>
+#include "types.h"
+#include "defs.h"
 #include "interrupts.h"
 #include "timer.h"
-#include "uart.h"
 
 /** @brief The BCM2835 Interupt controller peripheral at it's base address */
 static rpi_irq_controller_t* rpiIRQController =

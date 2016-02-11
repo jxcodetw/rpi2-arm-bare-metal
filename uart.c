@@ -1,9 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
-#include "uart.h"
-#include "gpio.h"
+#include "defs.h"
+#include "arm.h"
 
-extern size_t strlen();
 
 void uart_init()
 {

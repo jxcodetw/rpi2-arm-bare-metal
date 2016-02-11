@@ -1,5 +1,5 @@
+#include "defs.h"
 #include "mmu.h"
-#include "uart.h"
 
 static unsigned int gen_l1_pte(unsigned int paddr) {
     return (paddr & 0xfff00000);

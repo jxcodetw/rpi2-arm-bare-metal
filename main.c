@@ -1,15 +1,14 @@
-#include <stdbool.h>
-#include <stdint.h>
-#include "gpio.h"
-#include "uart.h"
+#include "types.h"
+#include "arm.h"
+#include "defs.h"
 #include "timer.h"
 #include "interrupts.h"
 
 
-void print_hex(unsigned int val) {
+void print_hex(uint val) {
     char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     char number[8] = {'0','0','0','0','0','0','0','0'};
-    unsigned int base = 16;
+    uint base = 16;
     int i = 7;
     uart_putc('0');
     uart_putc('x');

@@ -1,8 +1,8 @@
 CROSS=arm-none-eabi-
 CC=$(CROSS)gcc
 OBJCPY=$(CROSS)objcopy
-CFLAGS=-mcpu=cortex-a7 -fpic -ffreestanding -std=gnu99 -O2 -Wall -Wextra
-ASFLAGS=-mcpu=cortex-a7 -fpic -ffreestanding
+CFLAGS=-mcpu=cortex-a7 -fpic -ffreestanding -std=gnu99 -O2 -Wall -Wextra -I.
+ASFLAGS=-mcpu=cortex-a7 -fpic -ffreestanding -I.
 BUILD_DIR=build
 
 OBJS = \
@@ -10,11 +10,11 @@ OBJS = \
 	\
 	lib/string.o \
 	\
-	kernel.o\
 	uart.o\
 	mmu.o\
 	timer.o\
-	interrupts.o
+	interrupts.o\
+	main.o
 
 quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
 build-directory = $(shell mkdir -p $(BUILD_DIR) $(BUILD_DIR)/lib)
