@@ -1,6 +1,7 @@
 #ifndef ARM_H
 #define ARM_H
 
+
 // trap frame: in ARM, there are seven modes. Among the 16 regular registers,
 // r13 (sp), r14(lr), r15(pc) are banked in all modes.
 // 1. In xv6_a, all kernel level activities (e.g., Syscall and IRQ) happens
@@ -18,6 +19,7 @@
 // 4. kernel decides to reschedule (context switch), it saves the kernel states
 // and switches to a new process (including user-space banked registers)
 #ifndef __ASSEMBLER__
+#include "types.h"
 struct trapframe {
     uint    sp_usr;     // user mode sp
     uint    lr_usr;     // user mode lr
