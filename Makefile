@@ -8,6 +8,8 @@ BUILD_DIR=build
 OBJS = \
 	entry.o\
 	\
+	lib/string.o\
+	\
 	start.o\
 	main.o
 

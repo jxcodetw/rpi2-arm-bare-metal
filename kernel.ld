@@ -62,13 +62,14 @@ SECTIONS
         *(.data .data.*)
     }
 
-    PROVIDE (edata = .);
+    PROVIDE (__bss_start = .);
 
     .bss : {
         *(.bss .bss.* COMMON)
     }
 
     . = ALIGN(0x1000);
-    PROVIDE (end = .);
+    PROVIDE (__bss_end = .);
+    PROVIDE (__end = .);
 }
 

@@ -8,7 +8,7 @@
 
 _start:
     // Setup SVC mode stack
-    mov r0, #(SVC_MODE | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
+    mov r0, #(SVC_MODE | NO_INT)
     msr cpsr_c, r0
     //mov sp, #(64 * 1024 * 1024)
     ldr     sp, =svc_stktop
@@ -31,24 +31,7 @@ _start:
     cmp r4, r9
     blo 1b
 
-    // Clear out bss.
-    ldr r4, =edata
-    ldr r9, =end
-    mov r5, #0
-    mov r6, #0
-    mov r7, #0
-    mov r8, #0
-    b       4f
-
-3:
-    // store multiple at r4.
-    stmia r4!, {r5-r8}
-
-    // If we are still below bss_end, loop.
-4:
-    cmp r4, r9
-    blo 3b
-
+    // jump to start()
     ldr r3, =start
     blx r3
 

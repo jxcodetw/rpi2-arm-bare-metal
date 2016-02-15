@@ -1,12 +1,12 @@
 #include "memlayout.h"
 #include "mmu.h"
+#include "defs.h"
 
-typedef unsigned int uint32_t;
 extern void kmain(void);
 extern void jump_stack(void);
 
 
-static void uart_init()
+static void _uart_init()
 {
     // Disable UART0.
     mmio_write(UART0_CR, 0x00000000);
@@ -47,17 +47,17 @@ static void uart_init()
     mmio_write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
 }
 
-static void uart_putc(unsigned char byte)
+static void _uart_putc(unsigned char byte)
 {
     // Wait for UART to become ready to transmit.
     while(mmio_read(UART0_FR) & (1 << 5));
     mmio_write(UART0_DR, byte);
 }
 
-static void uart_puts(const char* str)
+static void _uart_puts(const char* str)
 {
     while(*str != '\0') {
-        uart_putc(*str);
+        _uart_putc(*str);
         str++;
     }
 }
@@ -111,7 +111,7 @@ static void _flush_all (void)
     asm("MCR p15, 0, %[r], c8, c7, 0" : :[r]"r" (val):);
 }
 
-void load_pgtlb ()
+void load_pgtlb()
 {
     uint val;
     // set domain access control: all domain will be checked for permission
@@ -141,13 +141,18 @@ void load_pgtlb ()
     _flush_all();
 }
 
-extern void * edata; 
-extern void * end;
+extern void * __bss_start; 
+extern void * __bss_end;
+extern void * __end;
+
+void clear_bss(void) {
+    memset(&__bss_start, 0x00, (uint)&__bss_end-(uint)&__bss_start);
+}
 
 void start(void) {
     uint32 vectbl;
-    uart_init();
-    uart_puts("starting os...\r\n");
+    _uart_init();
+    _uart_puts("starting os...\r\n");
     
     // double map the low memory, required to enable paging
     // we do not map all the physical memory
@@ -156,16 +161,16 @@ void start(void) {
 
     // vector table is in the middle of first 1MB (0xF000)
     vectbl = P2V_WO (VEC_TBL & PDE_MASK);
-
-    if (vectbl <= (uint)&end) {
-        uart_puts("error: vector table overlaps kernel\n");
+    if (vectbl <= (uint)&__end) {
+        _uart_puts("error: vector table overlaps kernel\n");
     }   
 
     set_bootpgtbl(VEC_TBL, 0, 1 << PDE_SHIFT, 0);
     set_bootpgtbl(KERNBASE+DEVBASE, DEVBASE, DEV_MEM_SZ, 1);  // DEVICE MAP
 
-    load_pgtlb (kernel_pgtbl, user_pgtbl);
+    load_pgtlb();
+
+    clear_bss();
     jump_stack();
     kmain();
-    while(1);
 }
