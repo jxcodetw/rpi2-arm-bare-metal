@@ -2,8 +2,6 @@
 #include "arm.h"
 #include "defs.h"
 #include "timer.h"
-#include "interrupts.h"
-
 
 void print_hex(uint val) {
     char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -51,6 +49,7 @@ void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
     (void)atags;
 
     char c;
+    uint32 spin = 0;
     uart_init();
     uart_puts("Hello, Kernel World!\r\n");
     //mmu_init();
@@ -71,6 +70,6 @@ void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
         // falls into this
         // and when timer interrupt called
         // it jumps to the interrupt handler and back here
-        uart_puts("never gonna let you down.");
+        uart_puts("spin to win.\r\n");
     }
 }

@@ -1,5 +1,6 @@
+#include "defs.h"
+#include "rpi2.h"
 #include "timer.h"
-#include "interrupts.h"
 
 static rpi_arm_timer_t* rpiTimer = (rpi_arm_timer_t*)RPI_ARMTIMER_BASE;
 
@@ -20,3 +21,9 @@ void timer_init() {
         RPI_ARMTIMER_CTRL_INT_ENABLE |
         RPI_ARMTIMER_CTRL_PRESCALE_256;
 }
+
+void isr_timer (struct trapframe *tp, int irq_idx) {
+    RPI_GetArmTimer()->IRQClear = 1;
+    uart_puts("timer_IRQ hit.\r\n");
+}
+

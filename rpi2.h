@@ -1,11 +1,12 @@
-#ifndef INTERRUPTS_H
-#define INTERRUPTS_H
+#ifndef RPI2_H
+#define RPI2_H
 
-#include <stdint.h>
+#include "types.h"
+
 #define RPI_INTERRUPT_CONTROLLER_BASE   (0x3F00B200)
 
 /** @brief Bits in the Enable_Basic_IRQs register to enable various interrupts.
-    See the BCM2835 ARM Peripherals manual, section 7.5 */
+ *     See the BCM2835 ARM Peripherals manual, section 7.5 */
 #define RPI_BASIC_ARM_TIMER_IRQ         (1 << 0)
 #define RPI_BASIC_ARM_MAILBOX_IRQ       (1 << 1)
 #define RPI_BASIC_ARM_DOORBELL_0_IRQ    (1 << 2)
@@ -18,20 +19,20 @@
 
 /** @brief The interrupt controller memory mapped register set */
 typedef struct {
-    volatile uint32_t IRQ_basic_pending;
-    volatile uint32_t IRQ_pending_1;
-    volatile uint32_t IRQ_pending_2;
-    volatile uint32_t FIQ_control;
-    volatile uint32_t Enable_IRQs_1;
-    volatile uint32_t Enable_IRQs_2;
-    volatile uint32_t Enable_Basic_IRQs;
-    volatile uint32_t Disable_IRQs_1;
-    volatile uint32_t Disable_IRQs_2;
-    volatile uint32_t Disable_Basic_IRQs;
+    volatile uint32 IRQ_basic_pending;
+    volatile uint32 IRQ_pending_1;
+    volatile uint32 IRQ_pending_2;
+    volatile uint32 FIQ_control;
+    volatile uint32 Enable_IRQs_1;
+    volatile uint32 Enable_IRQs_2;
+    volatile uint32 Enable_Basic_IRQs;
+    volatile uint32 Disable_IRQs_1;
+    volatile uint32 Disable_IRQs_2;
+    volatile uint32 Disable_Basic_IRQs;
+
 } rpi_irq_controller_t;
 
 
-extern rpi_irq_controller_t* RPI_GetIrqController( void );
-extern void enable_interrupts();
+extern rpi_irq_controller_t* RPI_GetIrqController( void  );
 
 #endif
