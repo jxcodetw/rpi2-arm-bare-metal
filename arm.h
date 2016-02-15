@@ -53,4 +53,7 @@ struct trapframe {
 #define SVC_MODE    0x13
 #define ABT_MODE    0x17
 
+#define CPSR_IRQ_INHIBIT 0x80
+#define CPSR_FIQ_INHIBIT 0x40
+
 #endif

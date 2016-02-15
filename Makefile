@@ -7,17 +7,8 @@ BUILD_DIR=build
 
 OBJS = \
 	entry.o\
-	trap_asm.o\
 	\
-	lib/string.o \
-	\
-	arm.o\
-	uart.o\
-	mmu.o\
-	picirq.o\
 	start.o\
-	timer.o\
-	trap.o\
 	main.o
 
 quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
