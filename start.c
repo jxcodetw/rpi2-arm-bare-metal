@@ -1,62 +1,12 @@
+#include "memlayout.h"
+#include "mmu.h"
+
 typedef unsigned int uint32_t;
 extern void kmain(void);
 extern void jump_stack(void);
 
-enum
-{
-    // The GPIO registers base address.
-    //GPIO_BASE = 0x20200000,
-    GPIO_BASE = 0x3f200000,
 
-    // The offsets for reach register.
-
-    // Controls actuation of pull up/down to ALL GPIO pins.
-    GPPUD = (GPIO_BASE + 0x94),
-
-    // Controls actuation of pull up/down for specific GPIO pin.
-    GPPUDCLK0 = (GPIO_BASE + 0x98),
-
-    // The base address for UART.
-    //UART0_BASE = 0x20201000,
-    UART0_BASE = 0x3f201000,
-
-    // The offsets for reach register for the UART.
-    UART0_DR     = (UART0_BASE + 0x00),
-    UART0_RSRECR = (UART0_BASE + 0x04),
-    UART0_FR     = (UART0_BASE + 0x18),
-    UART0_ILPR   = (UART0_BASE + 0x20),
-    UART0_IBRD   = (UART0_BASE + 0x24),
-    UART0_FBRD   = (UART0_BASE + 0x28),
-    UART0_LCRH   = (UART0_BASE + 0x2C),
-    UART0_CR     = (UART0_BASE + 0x30),
-    UART0_IFLS   = (UART0_BASE + 0x34),
-    UART0_IMSC   = (UART0_BASE + 0x38),
-    UART0_RIS    = (UART0_BASE + 0x3C),
-    UART0_MIS    = (UART0_BASE + 0x40),
-    UART0_ICR    = (UART0_BASE + 0x44),
-    UART0_DMACR  = (UART0_BASE + 0x48),
-    UART0_ITCR   = (UART0_BASE + 0x80),
-    UART0_ITIP   = (UART0_BASE + 0x84),
-    UART0_ITOP   = (UART0_BASE + 0x88),
-    UART0_TDR    = (UART0_BASE + 0x8C),
-};
-
-static inline void mmio_write(uint32_t reg, uint32_t data) {
-    asm volatile("str %[data], [%[reg]]" : : [reg]"r"(reg), [data]"r"(data));
-}
-
-static inline uint32_t mmio_read(uint32_t reg) {
-    uint32_t data;
-    asm volatile("ldr %[data], [%[reg]]" : [data]"=r"(data) : [reg]"r"(reg));
-    return data;
-}
-/* Loop <delay> times in a way that the compiler won't optimize away. */
-static inline void delay(int count) {
-    asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
-         : : [count]"r"(count) : "cc");
-}
-
-void uart_init()
+static void uart_init()
 {
     // Disable UART0.
     mmio_write(UART0_CR, 0x00000000);
@@ -97,14 +47,14 @@ void uart_init()
     mmio_write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
 }
 
-void uart_putc(unsigned char byte)
+static void uart_putc(unsigned char byte)
 {
     // Wait for UART to become ready to transmit.
     while(mmio_read(UART0_FR) & (1 << 5));
     mmio_write(UART0_DR, byte);
 }
 
-void uart_puts(const char* str)
+static void uart_puts(const char* str)
 {
     while(*str != '\0') {
         uart_putc(*str);
@@ -112,10 +62,123 @@ void uart_puts(const char* str)
     }
 }
 
+extern uint _kernel_pgtbl;
+extern uint _user_pgtbl;
+
+uint *kernel_pgtbl = &_kernel_pgtbl;
+uint *user_pgtbl = &_user_pgtbl;
+
+#define PDE_SHIFT 20
+
+// setup the boot page table: dev_mem whether it is device memory
+void set_bootpgtbl (uint32 virt, uint32 phy, uint len, int dev_mem )
+{
+    uint32	pde;
+    uint    idx;
+
+    // convert all the parameters to indexes
+    virt >>= PDE_SHIFT;
+    phy  >>= PDE_SHIFT;
+    len  >>= PDE_SHIFT;
+
+    for (idx = 0; idx < len; idx++) {
+        pde = (phy << PDE_SHIFT);
+
+        if (!dev_mem) {
+            // normal memory, make it kernel-only, cachable, bufferable
+            pde |= (AP_KO << 10) | PE_CACHE | PE_BUF | KPDE_TYPE;
+        } else {
+            // device memory, make it non-cachable and non-bufferable
+            pde |= (AP_KO << 10) | KPDE_TYPE;
+        }
+
+        // use different page table for user/kernel space
+        if (virt < NUM_UPDE) {
+            user_pgtbl[virt] = pde;
+        } else {
+            kernel_pgtbl[virt] = pde;
+        }
+        //kernel_pgtbl[virt] = pde;
+        virt++;
+        phy++;
+    }
+}
+
+static void _flush_all (void)
+{
+    uint val = 0;
+    // flush all TLB
+    asm("MCR p15, 0, %[r], c8, c7, 0" : :[r]"r" (val):);
+}
+
+void load_pgtlb ()
+{
+    uint val;
+    // set domain access control: all domain will be checked for permission
+    val = 0x55555555;
+    asm("MCR p15, 0, %[v], c3, c0, 0": :[v]"r" (val):);
+
+    // set the page table base registers. We use two page tables: TTBR0
+    // for user space and TTBR1 for kernel space
+    val = 32 - UADDR_BITS;
+    asm("MCR p15, 0, %[v], c2, c0, 2": :[v]"r" (val):);
+
+    // set the kernel page table
+    val = (uint)kernel_pgtbl | 0x00;
+    asm("MCR p15, 0, %[v], c2, c0, 1": :[v]"r" (val):);
+
+    // set the user page table
+    val = (uint)user_pgtbl | 0x00;
+    asm("MCR p15, 0, %[v], c2, c0, 0": :[v]"r" (val):);
+
+    // ok, enable paging using read/modify/write
+    asm("MRC p15, 0, %[r], c1, c0, 0": [r]"=r" (val)::);
+
+    val |= 0x80300D; // enable MMU, cache, write buffer, high vector tbl,
+                     // disable subpage
+    asm("MCR p15, 0, %[r], c1, c0, 0": :[r]"r" (val):);
+
+    _flush_all();
+}
+
+void print_hex(uint val) {
+    char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    char number[8] = {'0','0','0','0','0','0','0','0'};
+    uint base = 16;
+    int i = 7;
+    uart_putc('0');
+    uart_putc('x');
+
+    while(val > 0) {
+        number[i--] = digit[val % base];
+        val /= base;
+
+    }
+
+    for(i=0;i<8;++i) {
+        uart_putc(number[i]);
+
+    }
+
+    uart_putc('\r');
+    uart_putc('\n');
+
+}
+
 void start(void) {
     uart_init();
-    uart_puts("starting os...!\r\n");
-    while(1){};
-    jump_stack();
-    kmain();
+    uart_puts("starting os...\r\n");
+    
+    // double map the low memory, required to enable paging
+    // we do not map all the physical memory
+    set_bootpgtbl(0, 0, INIT_KERNMAP, 0); 
+    set_bootpgtbl(KERNBASE, 0, INIT_KERNMAP, 0); 
+    set_bootpgtbl(0x3f200000, 0x3f200000, 0x18000000, 1);  // DEVICE MAP
+
+    uart_puts("loading pgtlb...");
+    load_pgtlb (kernel_pgtbl, user_pgtbl);
+    uart_puts("done\r\n");
+    //jump_stack();
+    //kmain();
+    while(1);
 }
