@@ -6,7 +6,7 @@ ASFLAGS=-mcpu=cortex-a7 -fno-pic -ffreestanding -I.
 BUILD_DIR=build
 
 OBJS = \
-	boot.o\
+	entry.o\
 	trap_asm.o\
 	\
 	lib/string.o \
@@ -15,6 +15,7 @@ OBJS = \
 	uart.o\
 	mmu.o\
 	picirq.o\
+	start.o\
 	timer.o\
 	trap.o\
 	main.o
@@ -33,14 +34,14 @@ $(BUILD_DIR)/%.o: %.S
 	$(call quiet-command,$(CC) $(ASFLAGS) \
 		-c -o $@ $<,"[AS] $(TARGET_DIR)$@")
 
-kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) linker.ld
-	$(call quiet-command, $(CC) -T linker.ld -o $(BUILD_DIR)/kernel7.elf -ffreestanding -O2 -nostdlib $(addprefix $(BUILD_DIR)/, $(OBJS)), "[Build] $(TARGET_DIR)$@")
+kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) kernel.ld
+	$(call quiet-command, $(CC) -T kernel.ld -o $(BUILD_DIR)/kernel7.elf -ffreestanding -O2 -nostdlib $(addprefix $(BUILD_DIR)/, $(OBJS)), "[Build] $(TARGET_DIR)$@")
 	@$(OBJCPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
 	@echo kernel image has been built.
 	@$(CROSS)objdump -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.asm
 
-sd:
-	cp target/kernel7.img /media/removable/USB\ Drive/
+sd: kernel7.img
+	cp kernel7.img /media/removable/USB\ Drive/
 
 clean:
 	rm -rf build

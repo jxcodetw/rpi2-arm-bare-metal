@@ -49,7 +49,6 @@ void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
     (void)atags;
 
     char c;
-    uint32 spin = 0;
     uart_init();
     uart_puts("Hello, Kernel World!\r\n");
     //mmu_init();

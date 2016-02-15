@@ -42,6 +42,7 @@ struct trapframe {
 };
 #endif
 
+#define NO_INT 0xc0
 #define DIS_INT 0x80
 
 // ARM has 7 modes and banked registers
