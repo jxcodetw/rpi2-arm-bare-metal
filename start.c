@@ -141,31 +141,11 @@ void load_pgtlb ()
     _flush_all();
 }
 
-void print_hex(uint val) {
-    char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    char number[8] = {'0','0','0','0','0','0','0','0'};
-    uint base = 16;
-    int i = 7;
-    uart_putc('0');
-    uart_putc('x');
-
-    while(val > 0) {
-        number[i--] = digit[val % base];
-        val /= base;
-
-    }
-
-    for(i=0;i<8;++i) {
-        uart_putc(number[i]);
-
-    }
-
-    uart_putc('\r');
-    uart_putc('\n');
-
-}
+extern void * edata; 
+extern void * end;
 
 void start(void) {
+    uint32 vectbl;
     uart_init();
     uart_puts("starting os...\r\n");
     
@@ -173,12 +153,19 @@ void start(void) {
     // we do not map all the physical memory
     set_bootpgtbl(0, 0, INIT_KERNMAP, 0); 
     set_bootpgtbl(KERNBASE, 0, INIT_KERNMAP, 0); 
-    set_bootpgtbl(0x3f200000, 0x3f200000, 0x18000000, 1);  // DEVICE MAP
 
-    uart_puts("loading pgtlb...");
+    // vector table is in the middle of first 1MB (0xF000)
+    vectbl = P2V_WO (VEC_TBL & PDE_MASK);
+
+    if (vectbl <= (uint)&end) {
+        uart_puts("error: vector table overlaps kernel\n");
+    }   
+
+    set_bootpgtbl(VEC_TBL, 0, 1 << PDE_SHIFT, 0);
+    set_bootpgtbl(KERNBASE+DEVBASE, DEVBASE, DEV_MEM_SZ, 1);  // DEVICE MAP
+
     load_pgtlb (kernel_pgtbl, user_pgtbl);
-    uart_puts("done\r\n");
-    //jump_stack();
-    //kmain();
+    jump_stack();
+    kmain();
     while(1);
 }
