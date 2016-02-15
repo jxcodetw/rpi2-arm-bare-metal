@@ -38,8 +38,7 @@ kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) linker.ld
 	@$(CROSS)objdump -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.dump
 
 sd:
-	cp kernel7.img /media/removable/USB\ Drive/
-	cp kernel7.img /media/removable/USB\ Drive/kernel.img
+	cp target/kernel7.img /media/removable/USB\ Drive/
 
 clean:
 	rm -rf build
