@@ -23,6 +23,8 @@ void timer_init() {
 }
 
 void isr_timer (struct trapframe *tp, int irq_idx) {
+    (void)tp;
+    (void)irq_idx;
     RPI_GetArmTimer()->IRQClear = 1;
     uart_puts("timer_IRQ hit.\r\n");
 }

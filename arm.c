@@ -1,5 +1,7 @@
 #include "types.h"
+#include "defs.h"
 #include "arm.h"
+#include "cpu.h"
 
 // disable interrupt
 void cli(void) {
@@ -28,4 +30,31 @@ bool int_enabled(void) {
     // if DIS_INT bit is set(1) then interrupt is disabled
     // so we add a not(!) here
     return !(val & DIS_INT);
+}
+
+void pushcli(void) {
+    bool enabled;
+    enabled = int_enabled();
+
+    cli();
+
+    if (cpu->ncli == 0) {
+        cpu->intena = enabled;
+    }
+    cpu->ncli++;
+}
+
+void popcli(void) {
+    if (int_enabled()) {
+        panic("popcli() - interruptible");
+    }
+
+    cpu->ncli--;
+    if (cpu->ncli < 0) {
+        panic("popcli() - ncli < 0");
+    }
+
+    if ((cpu->ncli == 0) && cpu->intena) {
+        sti();
+    }
 }

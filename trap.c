@@ -12,7 +12,7 @@ void cprintf(char *fmt, ...) {
 // trap routine
 void swi_handler (struct trapframe *r)
 {
-    r++;
+    (void)r;
     /*
     if (proc->killed)
         exit();
@@ -26,7 +26,7 @@ void swi_handler (struct trapframe *r)
 // trap routine
 void irq_handler (struct trapframe *r)
 {
-    r++;
+    (void)r;
     // proc points to the current process. If the kernel is
     // running scheduler, proc is NULL.
     /*
@@ -34,7 +34,7 @@ void irq_handler (struct trapframe *r)
         proc->tf = r;
     }
     */
-    pic_dispatch (r);
+    pic_dispatch(r);
 }
 
 // trap routine
@@ -99,8 +99,9 @@ void fiq_handler (struct trapframe *r)
 
 // low-level init code: in real hardware, lower memory is usually mapped
 // to flash during startup, we need to remap it to SDRAM
-void trap_init ( )
+void trap_init()
 {
+    uart_puts("trap_init() [start]\r\n");
     /*
     char *stk;
     int i;

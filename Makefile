@@ -10,7 +10,14 @@ OBJS = \
 	\
 	lib/string.o\
 	\
+	arm.o\
+	picirq.o\
 	start.o\
+	spinlock.o\
+	trap.o\
+	timer.o\
+	uart.o\
+	vm.o\
 	main.o
 
 quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))

@@ -150,7 +150,6 @@ void clear_bss(void) {
 }
 
 void start(void) {
-    uint32 vectbl;
     _uart_init();
     _uart_puts("starting os...\r\n");
     
@@ -158,16 +157,8 @@ void start(void) {
     // we do not map all the physical memory
     set_bootpgtbl(0, 0, INIT_KERNMAP, 0); 
     set_bootpgtbl(KERNBASE, 0, INIT_KERNMAP, 0); 
-
-    // vector table is in the middle of first 1MB (0xF000)
-    vectbl = P2V_WO (VEC_TBL & PDE_MASK);
-    if (vectbl <= (uint)&__end) {
-        _uart_puts("error: vector table overlaps kernel\n");
-    }   
-
     set_bootpgtbl(VEC_TBL, 0, 1 << PDE_SHIFT, 0);
     set_bootpgtbl(KERNBASE+DEVBASE, DEVBASE, DEV_MEM_SZ, 1);  // DEVICE MAP
-
     load_pgtlb();
 
     clear_bss();

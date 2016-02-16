@@ -1,53 +1,37 @@
 #include "types.h"
 #include "memlayout.h"
 #include "arm.h"
+#include "defs.h"
+#include "cpu.h"
+#include "mmu.h"
 
-static void uart_putc(unsigned char byte)
+extern void* __end;
+
+struct cpu cpus[NCPU];
+struct cpu * cpu;
+
+void panic(char* str)
 {
-    // Wait for UART to become ready to transmit.
-    while(mmio_read(UART0_FR+KERNBASE) & (1 << 5));
-    mmio_write(UART0_DR+KERNBASE, byte);
+    cli(); // disable interrupt
+    uart_puts("kernel panic");
+    if (str != NULL) {
+        uart_puts(str);
+    }
+    while (1);
 }
 
-static void uart_puts(const char* str)
+void kmain(void)
 {
-    while(*str != '\0') {
-        uart_putc(*str);
-        str++;
+    uart_puts("kmain!\r\n");
+    unsigned char c;
+
+    cpu = &cpus[0];
+    init_vmm();
+    kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
+    trap_init();
+
+    while(1) {
+        c = uart_getc();
+        uart_putc(c);
     }
-}
-
-void print_hex(uint val) {
-    char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    char number[8] = {'0','0','0','0','0','0','0','0'};
-    uint base = 16;
-    int i = 7;
-    uart_putc('0');
-    uart_putc('x');
-
-    while(val > 0) {
-        number[i--] = digit[val % base];
-        val /= base;
-
-    }
-
-    for(i=0;i<8;++i) {
-        uart_putc(number[i]);
-
-    }
-
-    uart_putc('\r');
-    uart_putc('\n');
-
-}
-
-void kmain(uint32 r0, uint32 r1, uint32 atags)
-{
-    (void)r0;
-    (void)r1;
-    (void)atags;
-
-    uart_puts("in kmain.\r\n");
-
-    while(1);
 }
