@@ -7,8 +7,8 @@
 #define KERNBASE  		0x80000000         // First kernel virtual address
 #define KERNLINK  		(KERNBASE+EXTMEM)  // Address where kernel is linked
 
-#define DEVBASE         0x3f200000
-#define DEV_MEM_SZ      0x100000
+#define DEVBASE         0x3f000000
+#define DEV_MEM_SZ      0x400000
 #define VEC_TBL         0xFFFF0000
 
 // we first map 1MB low memory containing kernel code.

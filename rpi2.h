@@ -2,8 +2,9 @@
 #define RPI2_H
 
 #include "types.h"
+#include "memlayout.h"
 
-#define RPI_INTERRUPT_CONTROLLER_BASE   (0x3F00B200)
+#define RPI_INTERRUPT_CONTROLLER_BASE   (0x3F00B200+KERNBASE)
 
 /** @brief Bits in the Enable_Basic_IRQs register to enable various interrupts.
  *     See the BCM2835 ARM Peripherals manual, section 7.5 */

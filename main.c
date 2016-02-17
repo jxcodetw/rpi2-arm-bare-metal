@@ -22,16 +22,25 @@ void panic(char* str)
 
 void kmain(void)
 {
-    uart_puts("kmain!\r\n");
+    uart_puts("kmain ker_ri!\r\n");
     unsigned char c;
 
     cpu = &cpus[0];
     init_vmm();
     kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
+    uart_puts("trap_init...");
     trap_init();
+    uart_puts("done\r\n");
+    uart_puts("timer...");
+    timer_init();
+    uart_puts("done\r\n");
 
     while(1) {
         c = uart_getc();
-        uart_putc(c);
+        if (c == '0') {
+            sti();
+        } else {
+            uart_putc(c);
+        }
     }
 }

@@ -16,7 +16,7 @@ void init_vmm(void) {
     kpt_mem.freelist = NULL;
 }
 
-static void _kpt_free (char *v)
+static void _kpt_free(char *v)
 {
     struct run *r;
 
@@ -26,10 +26,24 @@ static void _kpt_free (char *v)
 }
 
 // add some memory used for page tables (initialization code)
-void kpt_freerange (uint32 low, uint32 hi)
+void kpt_freerange(uint32 low, uint32 hi)
 {
     while (low < hi) {
         _kpt_free ((char*)low);
         low += PT_SZ;
     }
+}
+
+void* kpt_alloc(void)
+{
+    struct run *r; 
+    
+    acquire(&kpt_mem.lock);
+    if ((r = kpt_mem.freelist) != NULL ) { 
+        kpt_mem.freelist = r->next;
+    }   
+    release(&kpt_mem.lock);
+
+    memset(r, 0, PT_SZ);
+    return r;
 }

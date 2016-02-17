@@ -6,7 +6,9 @@ ASFLAGS=-mcpu=cortex-a7 -fno-pic -ffreestanding -I.
 BUILD_DIR=build
 
 OBJS = \
+	asm.o\
 	entry.o\
+	trap_asm.o\
 	\
 	lib/string.o\
 	\
@@ -41,7 +43,7 @@ kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) kernel.ld
 	@$(CROSS)objdump -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.asm
 
 sd: kernel7.img
-	cp kernel7.img /media/removable/USB\ Drive/
+	cp kernel7.img /media/removable/USB\ Drive\ 2/
 
 clean:
 	rm -rf build

@@ -18,7 +18,6 @@ void initlock(struct spinlock *lk, char *name)
 void acquire(struct spinlock *lk)
 {
     pushcli();		// disable interrupts to avoid deadlock.
-    lk->locked = 1;
     uint32 tmp;
     asm volatile(
     "1:  ldrex %0, [%1];"
