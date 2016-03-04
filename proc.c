@@ -42,7 +42,7 @@ static struct proc* find_unused_proc(void) {
 static struct proc* allocproc(void) {
     struct proc *p;
     char *sp;
-    
+
     if ((p = find_unused_proc()) == NULL) {
         return NULL;
     }
@@ -60,10 +60,10 @@ static struct proc* allocproc(void) {
     p->tf = (struct trapframe*)sp;
     //800257c8 <forkret>:
     // ... after forkret finished 
-	//800257fc:   e8bd8800    pop {fp, pc}
+    //800257fc:   e8bd8800    pop {fp, pc}
     sp -= 4;
     *(uint*)sp = (uint)trapret;                // will be pop to pc
-	sp -= 4;
+    sp -= 4;
     *(uint*)sp = (uint)p->kstack + KSTACKSIZE; // will be pop to fp
 
     // Leave room for context
@@ -71,13 +71,13 @@ static struct proc* allocproc(void) {
     p->context = (struct context*)sp;
     memset(p->context, 0, sizeof(struct context));
 
-	// fp = r11 frame pointer register
+    // fp = r11 frame pointer register
     //800257c8 <forkret>: // as an example
     //800257c8:   e92d4800    push    {fp, lr}
     //800257cc:   e28db004    add fp, sp, #4
-	//800257fc:   e8bd8800    pop {fp, pc}
+    //800257fc:   e8bd8800    pop {fp, pc}
 
-	// add 4 to skip push{fp, lr}
+    // add 4 to skip push{fp, lr}
     // we have pushed the value we want(check the sp-=4 code above)
     p->context->lr = (uint)forkret+4; 
 
@@ -91,7 +91,7 @@ void error_init(void) {
 void userinit(void) {
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
-    
+
     p = allocproc();
     if ((p->pgdir = kpt_alloc()) == NULL) {
         panic("userinit: out of memory");
@@ -115,7 +115,7 @@ void userinit(void) {
 
 void scheduler(void) {
     struct proc *p;
-    
+
     for(;;) {
         sti();
 
@@ -124,7 +124,7 @@ void scheduler(void) {
             if (p->state != RUNNABLE) {
                 continue;
             }
-            
+
             curproc = p;
             // switchuvm(p);
             p->state = RUNNING;
