@@ -2,7 +2,7 @@
 #include "memlayout.h"
 #include "arm.h"
 #include "defs.h"
-#include "cpu.h"
+#include "proc.h"
 #include "mmu.h"
 
 extern void* __end;

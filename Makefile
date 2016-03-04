@@ -9,6 +9,7 @@ OBJS = \
 	asm.o\
 	entry.o\
 	trap_asm.o\
+	swtch.o\
 	\
 	lib/string.o\
 	\

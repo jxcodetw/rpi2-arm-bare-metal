@@ -1,7 +1,7 @@
 #include "types.h"
 #include "defs.h"
 #include "arm.h"
-#include "cpu.h"
+#include "proc.h"
 
 // disable interrupt
 void cli(void) {

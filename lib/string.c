@@ -40,3 +40,12 @@ uint32 strlen(const char* str) {
     }
     return ret;
 }
+
+void strncpy(char* buf, char* str, int size) {
+    int i;
+    for(i=0;i<size;++i) {
+        if (str[i] != '\0') {
+            buf[i] = str[i];
+        }
+    }
+}
