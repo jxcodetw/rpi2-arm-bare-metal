@@ -1,8 +1,11 @@
 CROSS=arm-none-eabi-
 CC=$(CROSS)gcc
-OBJCPY=$(CROSS)objcopy
+LD=$(CROSS)ld
+OBJCOPY=$(CROSS)objcopy
+OBJDUMP=$(CROSS)objdump
 CFLAGS=-mcpu=cortex-a7 -fno-pic -static -ffreestanding -std=gnu99 -O2 -Wall -Wextra -I.
 ASFLAGS=-mcpu=cortex-a7 -fno-pic -ffreestanding -I.
+LDFLAGS=-L.
 BUILD_DIR=build
 
 OBJS = \
@@ -37,11 +40,29 @@ $(BUILD_DIR)/%.o: %.S
 	$(call quiet-command,$(CC) $(ASFLAGS) \
 		-c -o $@ $<,"[AS] $(TARGET_DIR)$@")
 
-kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) kernel.ld
-	$(call quiet-command, $(CC) -T kernel.ld -o $(BUILD_DIR)/kernel7.elf -ffreestanding -O2 -nostdlib $(addprefix $(BUILD_DIR)/, $(OBJS)), "[Build] $(TARGET_DIR)$@")
-	@$(OBJCPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
+kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) kernel.ld build/initcode
+	$(call quiet-command, $(LD) $(LDFLAGS) \
+		-T kernel.ld \
+		-o $(BUILD_DIR)/kernel7.elf \
+		$(addprefix $(BUILD_DIR)/, $(OBJS)) \
+		-b binary build/initcode, "[LINK] $(TARGET_DIR)$@")
+	@$(OBJCOPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
 	@echo kernel image has been built.
-	@$(CROSS)objdump -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.asm
+	@$(OBJDUMP) -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.asm
+
+INITCODE_OBJ = initcode.o
+$(addprefix $(BUILD_DIR)/,$(INITCODE_OBJ)): initcode.S
+	$(call build-directory)
+	$(call quiet-command,$(CC) $(ASFLAGS)\
+		-nostdinc -I. -c -o $@ $<,"[AS] $(TARGET_DIR)$@")
+
+build/initcode: $(addprefix $(BUILD_DIR)/,$(INITCODE_OBJ))
+	$(call quiet-command,$(LD) $(LDFLAGS) \
+	 	-N -e start -Ttext 0 -o $@.out $<, "[LINK] $(TARGET_DIR)$@")
+	$(call quiet-command,$(OBJCOPY) \
+		-S -O binary --prefix-symbols="_binary_$@" $@.out $@, "[OBJCOPY] $(TARGET_DIR)$@")
+	@$(OBJDUMP) -S $< > $(BUILD_DIR)/initcode.asm
+
 
 sd: kernel7.img
 	cp kernel7.img /media/removable/USB\ Drive\ 2/
