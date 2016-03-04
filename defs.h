@@ -7,6 +7,8 @@
 struct spinlock;
 struct trapframe;
 
+typedef void (*ISR) (struct trapframe *tf, int n);
+
 // arm.c
 void   set_stk(uint mode, uint addr);
 void*  get_fp (void);
@@ -16,6 +18,9 @@ void   pushcli(void);
 void   popcli(void);
 
 // picirq.c
+void   pic_init(void *base);
+void   pic_enable(int n, ISR isr);
+void   pic_disable(int n);
 void   pic_dispatch (struct trapframe *tp);
 
 // string.c

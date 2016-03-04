@@ -41,6 +41,7 @@ kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) kernel.ld
 	@$(OBJCPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
 	@echo kernel image has been built.
 	@$(CROSS)objdump -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.asm
+	@cp kernel7.img ~/share/kernel7.img
 
 sd: kernel7.img
 	cp kernel7.img /media/removable/USB\ Drive\ 2/

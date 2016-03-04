@@ -3,7 +3,6 @@
 #include "defs.h"
 #include "arm.h"
 #include "memlayout.h"
-#include "timer.h"
 
 void cprintf(char *fmt, ...) {
     uart_puts("cprintf not implement yet...");
@@ -136,10 +135,7 @@ void trap_init()
 
     // initialize the stacks for different mode
     for (i = 0; i < sizeof(modes)/sizeof(uint); i++) {
-        uart_puts("alloc...");
         stk = kpt_alloc();
-        uart_puts("got addr: ");
-        print_hex(stk);
 
         if (stk == NULL) {
             panic("failed to alloc memory for irq stack");

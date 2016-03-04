@@ -4,6 +4,7 @@
 #include "defs.h"
 #include "cpu.h"
 #include "mmu.h"
+#include "rpi2.h"
 
 extern void* __end;
 
@@ -22,7 +23,7 @@ void panic(char* str)
 
 void kmain(void)
 {
-    uart_puts("kmain ker_ri!\r\n");
+    uart_puts("kmain ker_ker_ri!\r\n");
     unsigned char c;
 
     cpu = &cpus[0];
@@ -30,6 +31,9 @@ void kmain(void)
     kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
     uart_puts("trap_init...");
     trap_init();
+    uart_puts("done\r\n");
+    uart_puts("pic_init...");
+    pic_init(P2V(VIC_BASE));
     uart_puts("done\r\n");
     uart_puts("timer...");
     timer_init();

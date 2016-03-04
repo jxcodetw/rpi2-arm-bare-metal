@@ -4,8 +4,7 @@
 #include "types.h"
 #include "memlayout.h"
 
-#define RPI_ARMTIMER_BASE               (0x3F00B400+KERNBASE)
-
+#define TIMER0 (0x3F00B400)
 /** @brief 0 : 16-bit counters - 1 : 23-bit counter */
 #define RPI_ARMTIMER_CTRL_23BIT         ( 1 << 1 )
 
@@ -24,7 +23,7 @@
 
 /** @brief Section 14.2 of the BCM2835 Peripherals documentation details
     the register layout for the ARM side timer */
-typedef struct {
+struct rpitimer {
 
     /** The timer load register sets the time for the timer to count down.
         This value is loaded into the timer value register after the load
@@ -100,11 +99,5 @@ typedef struct {
         set and the ARM is in Debug Halt mode. */
     volatile uint32 FreeRunningCounter;
 
-    } rpi_arm_timer_t;
-
-
-extern rpi_arm_timer_t* RPI_GetArmTimer(void);
-extern void RPI_ArmTimerInit(void);
-extern void timer_init(void);
-
+};
 #endif
