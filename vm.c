@@ -48,6 +48,38 @@ void* kpt_alloc(void)
     return r;
 }
 
+static pte_t* walkpgdir(pde_t *pgdir, const void *va, int alloc) {
+    return 0;
+}
+
+static int mappages(pde_t *pgdir, uint va, uint size, uint pa, uint ap) {
+    char *a, *last;
+    pte_t *pte;
+
+    a    = (char*)align_dn(va       , PTE_SZ);
+    last = (char*)align_dn(va+size-1, PTE_SZ);
+
+    for(;;) {
+        if ((pte = walkpgdir(pgdir, a, 1)) == 0) {
+            return -1;
+        }
+
+        if (*pte & PE_TYPES) {
+            panic("remap");
+        }
+
+        *pte = pa | ((ap & 0x3) << 4) | PE_CACHE | PE_BUF | PTE_TYPE;
+
+        if (a == last) {
+            break;
+        }
+        a  += PTE_SZ;
+        pa += PTE_SZ;
+    }
+
+    return 0;
+}
+
 static void flush_tlb(void) {
     uint val = 0;
     asm("MCR p15, 0, %[r], c8, c7, 0" : :[r]"r" (val):);

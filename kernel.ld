@@ -1,3 +1,5 @@
+OUTPUT_FORMAT("elf32-littlearm")
+OUTPUT_ARCH(arm)
 ENTRY(_start)
 
 ENTRY_SVC_STACK_SIZE = 0x1000;

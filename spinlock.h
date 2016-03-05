@@ -1,7 +1,7 @@
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
 
-#include "cpu.h"
+#include "proc.h"
 
 struct spinlock {
     uint        locked;

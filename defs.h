@@ -4,12 +4,14 @@
 #include "arm.h"
 #include "types.h"
 
+struct context;
 struct spinlock;
 struct trapframe;
 
 typedef void (*ISR) (struct trapframe *tf, int n);
 
 // arm.c
+bool int_enabled(void);
 void   set_stk(uint mode, uint addr);
 void*  get_fp (void);
 void   cli(void);
@@ -24,6 +26,7 @@ void   pic_disable(int n);
 void   pic_dispatch (struct trapframe *tp);
 
 // string.c
+void   strncpy(char* buf, char* str, int size);
 void*  memset(void *dst, int v, int n);
 uint32 strlen(const char* str);
 
@@ -66,5 +69,8 @@ void paging_init(uint phy_low, uint phy_hi);
 
 // main.c
 void panic(char* str);
+
+// swtch.S
+void swtch(struct context**, struct context*);
 
 #endif
