@@ -1,6 +1,9 @@
 #include "defs.h"
 #include "mmu.h"
+#include "memlayout.h"
 #include "spinlock.h"
+
+extern uint _kernel_pgtbl;
 
 struct run {
     struct run *next;
@@ -49,6 +52,9 @@ void* kpt_alloc(void)
 }
 
 static pte_t* walkpgdir(pde_t *pgdir, const void *va, int alloc) {
+	(void)pgdir;
+	(void)va;
+	(void)alloc;
     return 0;
 }
 
@@ -92,8 +98,8 @@ static void flush_tlb(void) {
 }
 
 void paging_init(uint phy_low, uint phy_hi) {
-    (void)phy_low;
-    (void)phy_hi;
-    //mappages()
+    // _kernel_pgtbl is preserved in kernel.ld
+    // AP_KU means full access
+    mappages(P2V(&_kernel_pgtbl), P2V_WO(phy_low), phy_hi-phy_low, phy_low, AP_KU);
     flush_tlb();
 }

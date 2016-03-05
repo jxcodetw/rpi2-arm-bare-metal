@@ -23,7 +23,7 @@ void panic(char* str)
 
 void kmain(void)
 {
-    uart_puts("kmain ker_ker_ri!\r\n");
+    uart_puts("enter kmain\r\n");
     unsigned char c;
 
     cpu = &cpus[0];
@@ -38,6 +38,8 @@ void kmain(void)
 
     // file system init
 
+    // test
+    uart_puts("$ ");
     while(1) {
         c = uart_getc();
         if (c == '0') {
