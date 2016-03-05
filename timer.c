@@ -32,7 +32,7 @@ void timer_init() {
         RPI_ARMTIMER_CTRL_ENABLE |
         RPI_ARMTIMER_CTRL_INT_ENABLE |
         RPI_ARMTIMER_CTRL_PRESCALE_256;
-    pic_enable(0, isr_timer);
+    pic_enable(RPI_BASIC_ARM_TIMER_IRQ, isr_timer);
 }
 
 void isr_timer (struct trapframe *tf, int irq_idx) {
