@@ -27,12 +27,12 @@ void timer_init() {
     /* Setup the system timer interrupt */
     /* Timer frequency = Clk/256 * 0x400 */
     timer0[TIMER_LOAD] = 0x2000;
-    timer0[TIMER_CONTROL] = 
+    timer0[TIMER_CONTROL] =
         RPI_ARMTIMER_CTRL_23BIT |
         RPI_ARMTIMER_CTRL_ENABLE |
         RPI_ARMTIMER_CTRL_INT_ENABLE |
         RPI_ARMTIMER_CTRL_PRESCALE_256;
-    pic_enable(RPI_BASIC_ARM_TIMER_IRQ, isr_timer);
+    pic_enable(0, isr_timer);
 }
 
 void isr_timer (struct trapframe *tf, int irq_idx) {
@@ -44,4 +44,3 @@ void isr_timer (struct trapframe *tf, int irq_idx) {
     release(&tickslock);
     ack_timer();
 }
-

@@ -49,11 +49,9 @@ void pic_dispatch (struct trapframe *tf) {
     uint intstatus;
     int i;
     intstatus = vic_base[VIC_IRQPENDING];
-    print_hex(intstatus);
     for(i=0;i<NUM_INTSRC;++i) {
         if (intstatus & (1<<i)) {
             isrs[i](tf, i);
         }
     }
-    //isr_timer(tf, 0);
 }
