@@ -11,7 +11,8 @@ struct trapframe;
 typedef void (*ISR) (struct trapframe *tf, int n);
 
 // arm.c
-bool int_enabled(void);
+uint   spsr_usr(void);
+bool   int_enabled(void);
 void   set_stk(uint mode, uint addr);
 void*  get_fp (void);
 void   cli(void);
@@ -25,7 +26,15 @@ void   pic_enable(int n, ISR isr);
 void   pic_disable(int n);
 void   pic_dispatch (struct trapframe *tp);
 
+// proc.c
+void   pinit(void);
+void   error_init(void);
+void   userinit(void);
+void   scheduler(void);
+void   forkret(void);
+
 // string.c
+void   memmove(char* dest, char* src, int size);
 void   strncpy(char* buf, char* str, int size);
 void*  memset(void *dst, int v, int n);
 uint32 strlen(const char* str);
@@ -63,7 +72,10 @@ void print_hex(uint val);
 // vm.c
 void init_vmm(void);
 void kpt_freerange(uint32 low, uint32 high);
+void kmem_freerange(uint32 low, uint32 high);
+void* alloc_page(void);
 void* kpt_alloc(void);
+void inituvm(pde_t *pgdir, char *init, uint sz);
 
 void paging_init(uint phy_low, uint phy_hi);
 

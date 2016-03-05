@@ -49,3 +49,10 @@ void strncpy(char* buf, char* str, int size) {
         }
     }
 }
+
+void memmove(char* dest, char* src, int size) {
+    int i;
+    for(i=0;i<size;++i) {
+        dest[i] = src[i];
+    }
+}

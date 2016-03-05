@@ -18,6 +18,7 @@ OBJS = \
 	\
 	arm.o\
 	picirq.o\
+	proc.o\
 	start.o\
 	spinlock.o\
 	trap.o\
@@ -29,43 +30,46 @@ OBJS = \
 quiet-command = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
 build-directory = $(shell mkdir -p $(BUILD_DIR) $(BUILD_DIR)/lib)
 
+LINK_BIN = $(call quiet-command,$(LD) $(LDFLAGS) \
+    -T $(1) -o $(2) $(3) $(LIBS) -b binary $(4), "[LINK]    $(TARGET_DIR)$@")
+AS_WITH = $(call quiet-command,$(CC) $(ASFLAGS) \
+        $(1) -c -o $@ $<,"[AS]      $(TARGET_DIR)$@")
+LINK_INIT = $(call quiet-command,$(LD) $(LDFLAGS) \
+    $(1) -o $@.out $<, "[LINK]    $(TARGET_DIR)$@")
+OBJCOPY_INIT = $(call quiet-command,$(OBJCOPY) \
+    -S -O binary --prefix-symbols="_binary_$@" $@.out $@, "[OBJCOPY] $(TARGET_DIR)$@")
 
 $(BUILD_DIR)/%.o: %.c
 	$(call build-directory)
 	$(call quiet-command,$(CC) $(CFLAGS) \
-		-c -o $@ $<,"[CC] $(TARGET_DIR)$@")
+		-c -o $@ $<,"[CC]      $(TARGET_DIR)$@")
 
 $(BUILD_DIR)/%.o: %.S
 	$(call build-directory)
 	$(call quiet-command,$(CC) $(ASFLAGS) \
-		-c -o $@ $<,"[AS] $(TARGET_DIR)$@")
+		-c -o $@ $<,"[AS]      $(TARGET_DIR)$@")
 
 kernel7.img: $(addprefix $(BUILD_DIR)/, $(OBJS)) kernel.ld build/initcode
-	$(call quiet-command, $(LD) $(LDFLAGS) \
-		-T kernel.ld \
-		-o $(BUILD_DIR)/kernel7.elf \
-		$(addprefix $(BUILD_DIR)/, $(OBJS)) \
-		-b binary build/initcode, "[LINK] $(TARGET_DIR)$@")
+	@cp -f build/initcode initcode
+	$(call LINK_BIN, kernel.ld, $(BUILD_DIR)/kernel7.elf, \
+		$(addprefix $(BUILD_DIR)/, $(OBJS)), \
+		initcode)
+	@rm initcode
 	@$(OBJCOPY) $(BUILD_DIR)/kernel7.elf -O binary kernel7.img
 	@echo kernel image has been built.
 	@$(OBJDUMP) -d $(BUILD_DIR)/kernel7.elf > $(BUILD_DIR)/kernel7.asm
 	@cp kernel7.img ~/share/kernel7.img
 
+
 INITCODE_OBJ = initcode.o
 $(addprefix $(BUILD_DIR)/,$(INITCODE_OBJ)): initcode.S
 	$(call build-directory)
-	$(call quiet-command,$(CC) $(ASFLAGS)\
-		-nostdinc -I. -c -o $@ $<,"[AS] $(TARGET_DIR)$@")
+	$(call AS_WITH, -nostdinc -I.)
 
 build/initcode: $(addprefix $(BUILD_DIR)/,$(INITCODE_OBJ))
-	$(call quiet-command,$(LD) $(LDFLAGS) \
-	 	-N -e start -Ttext 0 -o $@.out $<, "[LINK] $(TARGET_DIR)$@")
-	$(call quiet-command,$(OBJCOPY) \
-		-S -O binary --prefix-symbols="_binary_$@" $@.out $@, "[OBJCOPY] $(TARGET_DIR)$@")
+	$(call LINK_INIT, -N -e start -Ttext 0)
+	$(call OBJCOPY_INIT)
 	@$(OBJDUMP) -S $< > $(BUILD_DIR)/initcode.asm
-
-sd: kernel7.img
-	cp kernel7.img /media/removable/USB\ Drive\ 2/
 
 clean:
 	rm -rf build

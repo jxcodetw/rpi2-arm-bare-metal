@@ -30,13 +30,19 @@ void kmain(void)
     init_vmm();
     kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
     paging_init(INIT_KERNMAP, PHYSTOP);
+    //kmem_freerange(P2V_WO(INIT_KERNMAP), P2V_WO(PHYSTOP));
 
+    uart_puts("interrupt related...\r\n");
     // interrupt related
     trap_init();
     pic_init(P2V(VIC_BASE));
     timer_init();
+    uart_puts("interrupt related...done\r\n");
 
     // file system init
+
+    // init process
+    userinit();
 
     // test
     uart_puts("$ ");

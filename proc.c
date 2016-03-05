@@ -13,7 +13,7 @@ struct {
 struct proc *curproc;
 int nextpid = 1;
 
-extern void forkret(void);
+void forkret(void);
 extern void trapret(void);
 
 void pinit(void) {
@@ -22,7 +22,6 @@ void pinit(void) {
 
 static struct proc* find_unused_proc(void) {
     struct proc *p;
-    bool found = false;
 
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; ++p) {
@@ -59,7 +58,7 @@ static struct proc* allocproc(void) {
     sp -= sizeof(struct trapframe);
     p->tf = (struct trapframe*)sp;
     //800257c8 <forkret>:
-    // ... after forkret finished 
+    // ... after forkret finished
     //800257fc:   e8bd8800    pop {fp, pc}
     sp -= 4;
     *(uint*)sp = (uint)trapret;                // will be pop to pc
@@ -79,7 +78,7 @@ static struct proc* allocproc(void) {
 
     // add 4 to skip push{fp, lr}
     // we have pushed the value we want(check the sp-=4 code above)
-    p->context->lr = (uint)forkret+4; 
+    p->context->lr = (uint)forkret+4;
 
     return p;
 }
@@ -92,25 +91,37 @@ void userinit(void) {
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
+    uart_puts("1\r\n");
     p = allocproc();
+    uart_puts("2\r\n");
+    if (p == NULL) {
+        panic("userinit: allocproc error");
+    }
+    uart_puts("3\r\n");
     if ((p->pgdir = kpt_alloc()) == NULL) {
         panic("userinit: out of memory");
     }
+    uart_puts("4\r\n");
 
     inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
 
+    uart_puts("5\r\n");
     p->size = PTE_SZ;
     memset(p->tf, 0, sizeof(struct trapframe));
 
+    uart_puts("6\r\n");
     p->tf->r14_svc = (uint)error_init;
     p->tf->spsr = spsr_usr();
     p->tf->sp_usr = PTE_SZ; // user stack, happend to be the end of first page for now
     p->tf->lr_usr = 0;
     p->tf->pc = 0;
 
+    uart_puts("7\r\n");
     strncpy(p->name, "initcode", sizeof(p->name));
 
+    uart_puts("8\r\n");
     p->state = RUNNABLE;
+    uart_puts("9\r\n");
 }
 
 void scheduler(void) {
@@ -128,12 +139,12 @@ void scheduler(void) {
             curproc = p;
             // switchuvm(p);
             p->state = RUNNING;
-            swtch(&cpu->scheduler, proc->context);
+            swtch(&cpu->scheduler, curproc->context);
 
             // process is done running for now
             // it should have changed its p->state before coming back
             // haven't know why
-            proc = 0;
+            curproc = 0;
         }
         release(&ptable.lock);
     }
@@ -152,7 +163,7 @@ void sched(void) {
         panic("sched locks");
     }
 
-    if (proc->state == RUNNING) {
+    if (curproc->state == RUNNING) {
         panic("sched running");
     }
 
@@ -162,14 +173,14 @@ void sched(void) {
 
     // don't know intena usage
     intena = cpu->intena;
-    swtch(&proc->context, cpu->scheduler);
+    swtch(&curproc->context, cpu->scheduler);
     cpu->intena = intena;
 }
 
 // don't know what this function for
 void yield(void) {
     acquire(&ptable.lock);
-    proc->state = RUNNABLE;
+    curproc->state = RUNNABLE;
     sched();
     release(&ptable.lock);
 }
@@ -188,6 +199,3 @@ void forkret(void) {
 
     // will return to trapret (see allocproc)
 }
-
-
-

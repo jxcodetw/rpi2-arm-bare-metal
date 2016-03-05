@@ -14,9 +14,17 @@ struct {
     struct run *freelist;
 } kpt_mem;
 
+struct {
+    struct spinlock lock;
+    struct run *freelist;
+} kmem;
+
 void init_vmm(void) {
     initlock(&kpt_mem.lock, "vm");
     kpt_mem.freelist = NULL;
+
+    initlock(&kmem.lock, "kmem");
+    kmem.freelist = NULL;
 }
 
 static void _kpt_free(char *v)
@@ -57,6 +65,37 @@ void* kpt_alloc(void)
     return r;
 }
 
+// add pages
+void kmem_freerange(uint32 low, uint32 hi)
+{
+    uart_puts("kmem  low: ");
+    print_hex(low);
+    uart_puts("kmem high: ");
+    print_hex(hi);
+    uart_puts("page num: ");
+    print_hex((hi-low) / PTE_SZ);
+    while (low < hi) {
+        _kpt_free ((char*)low);
+        low += PTE_SZ;
+        print_hex(low);
+    }
+    uart_puts("freeranged!\r\n");
+}
+
+void* alloc_page(void)
+{
+    struct run *r;
+
+    acquire(&kmem.lock);
+    if ((r = kmem.freelist) != NULL ) {
+        kmem.freelist = r->next;
+    }
+    release(&kmem.lock);
+
+    memset(r, 0, PTE_SZ);
+    return r;
+}
+
 static pte_t* walkpgdir(pde_t *pgdir, const void *va, int alloc) {
     pde_t *pde;
     pte_t *pgtab;
@@ -80,7 +119,14 @@ static pte_t* walkpgdir(pde_t *pgdir, const void *va, int alloc) {
     return &pgtab[PTE_IDX(va)];
 }
 
-static int mappages(pde_t *pgdir, uint va, uint size, uint pa, uint ap) {
+static int mappages(pde_t *pgdir, void* va, uint size, uint pa, uint ap) {
+    uart_puts("mappages\r\n");
+    uart_puts("va: ");
+    print_hex((uint)va);
+    uart_puts("size: ");
+    print_hex(size);
+    uart_puts("pa: ");
+    print_hex(pa);
     char *a, *last;
     pte_t *pte;
 
@@ -89,6 +135,7 @@ static int mappages(pde_t *pgdir, uint va, uint size, uint pa, uint ap) {
 
     for(;;) {
         if ((pte = walkpgdir(pgdir, a, 1)) == 0) {
+            uart_puts("walk error\r\n");
             return -1;
         }
 
@@ -105,6 +152,7 @@ static int mappages(pde_t *pgdir, uint va, uint size, uint pa, uint ap) {
         pa += PTE_SZ;
     }
 
+    uart_puts("before return mappages\r\n");
     return 0;
 }
 
@@ -122,6 +170,21 @@ static void flush_tlb(void) {
 void paging_init(uint phy_low, uint phy_hi) {
     // _kernel_pgtbl is preserved in kernel.ld
     // AP_KU means full access
-    mappages(P2V(&_kernel_pgtbl), P2V_WO(phy_low), phy_hi-phy_low, phy_low, AP_KU);
+    mappages(P2V(&_kernel_pgtbl), P2V(phy_low), phy_hi-phy_low, phy_low, AP_KU);
     flush_tlb();
+}
+
+// Load the initcode into address 0 of pgdir. sz must be less than a page.
+void inituvm(pde_t *pgdir, char *init, uint sz)
+{
+    char *mem;
+
+    if (sz >= PTE_SZ) {
+        panic("inituvm: more than a page");
+    }
+
+    mem = kpt_alloc();
+    memset(mem, 0, PTE_SZ);
+    mappages(pgdir, 0, PTE_SZ, v2p(mem), AP_KU);
+    memmove(mem, init, sz);
 }

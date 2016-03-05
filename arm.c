@@ -15,10 +15,22 @@ void cli(void) {
 // enable interrupt
 void sti(void) {
     uint32 val;
-    
+
     asm("mrs %[v], cpsr":[v]"=r"(val)::);
     val &= ~DIS_INT;
     asm("msr cpsr_c, %[v]"::[v]"r"(val):);
+}
+
+// return the cpsr used for user program
+uint spsr_usr(void)
+{
+    uint val;
+
+    asm("mrs %[v], cpsr": [v]"=r" (val)::);
+    val &= ~MODE_MASK;
+    val |= USR_MODE;
+
+    return val;
 }
 
 // return if interrupt is enabled
