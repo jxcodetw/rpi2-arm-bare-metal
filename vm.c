@@ -31,6 +31,12 @@ static void _kpt_free(char *v)
 // add some memory used for page tables (initialization code)
 void kpt_freerange(uint32 low, uint32 hi)
 {
+    uart_puts("kpt  low: ");
+    print_hex(low);
+    uart_puts("kpt high: ");
+    print_hex(hi);
+    uart_puts("alloc num: ");
+    print_hex((hi-low) / PT_SZ);
     while (low < hi) {
         _kpt_free ((char*)low);
         low += PT_SZ;
@@ -52,10 +58,26 @@ void* kpt_alloc(void)
 }
 
 static pte_t* walkpgdir(pde_t *pgdir, const void *va, int alloc) {
-	(void)pgdir;
-	(void)va;
-	(void)alloc;
-    return 0;
+    pde_t *pde;
+    pte_t *pgtab;
+
+    pde = &pgdir[PDE_IDX(va)];
+
+    if (*pde & PE_TYPES) {
+        pgtab = (pte_t*)P2V(PT_ADDR(*pde));
+    } else {
+        if (alloc) {
+            if ((pgtab = (pte_t*)kpt_alloc()) == 0) {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+        memset(pgtab, 0, PT_SZ);
+        *pde = V2P(pgtab) | UPDE_TYPE;
+    }
+
+    return &pgtab[PTE_IDX(va)];
 }
 
 static int mappages(pde_t *pgdir, uint va, uint size, uint pa, uint ap) {
