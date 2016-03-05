@@ -62,6 +62,8 @@ void init_vmm(void);
 void kpt_freerange(uint32 low, uint32 high);
 void* kpt_alloc(void);
 
+void paging_init(uint phy_low, uint phy_hi);
+
 // main.c
 void panic(char* str);
 

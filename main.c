@@ -29,15 +29,14 @@ void kmain(void)
     cpu = &cpus[0];
     init_vmm();
     kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
-    uart_puts("trap_init...");
+    paging_init(INIT_KERNMAP, PHYSTOP);
+
+    // interrupt related
     trap_init();
-    uart_puts("done\r\n");
-    uart_puts("pic_init...");
     pic_init(P2V(VIC_BASE));
-    uart_puts("done\r\n");
-    uart_puts("timer...");
     timer_init();
-    uart_puts("done\r\n");
+
+    // file system init
 
     while(1) {
         c = uart_getc();

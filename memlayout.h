@@ -12,7 +12,8 @@
 #define VEC_TBL         0xFFFF0000
 
 // we first map 1MB low memory containing kernel code.
-#define INIT_KERNMAP 	0x100000
+#define INIT_KERNMAP 	0x00100000 // 1MB
+#define PHYSTOP         0x08000000 // 128MB
 
 #define V2P(a) (((uint) (a)) - KERNBASE)
 #define P2V(a) (((void *) (a)) + KERNBASE)

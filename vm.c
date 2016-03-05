@@ -36,14 +36,32 @@ void kpt_freerange(uint32 low, uint32 hi)
 
 void* kpt_alloc(void)
 {
-    struct run *r; 
-    
+    struct run *r;
+
     acquire(&kpt_mem.lock);
-    if ((r = kpt_mem.freelist) != NULL ) { 
+    if ((r = kpt_mem.freelist) != NULL ) {
         kpt_mem.freelist = r->next;
-    }   
+    }
     release(&kpt_mem.lock);
 
     memset(r, 0, PT_SZ);
     return r;
+}
+
+static void flush_tlb(void) {
+    uint val = 0;
+    asm("MCR p15, 0, %[r], c8, c7, 0" : :[r]"r" (val):);
+
+    // invalidate entire data and instruction cache
+    // if we run these two line the kernel will stop
+    // need to check rpi2 spec
+    //asm volatile("mcr p15, 0, %[r], c7, c10, 0"::[r]"r"(val):);
+    //asm volatile("mcr p15, 0, %[r], c7, c11, 0"::[r]"r"(val):);
+}
+
+void paging_init(uint phy_low, uint phy_hi) {
+    (void)phy_low;
+    (void)phy_hi;
+    //mappages()
+    flush_tlb();
 }
