@@ -198,6 +198,7 @@ static int mappages(pde_t *pgdir, void* va, uint size, uint pa, uint ap) {
 void flush_dcache_all(void);
 
 static void flush_tlb(void) {
+    uart_puts("flushing_tlb\r\n");
     uint val = 0;
     // invalidate tlb
     asm volatile("mcr p15, 0, %[r], c8, c7, 0" : :[r]"r" (val):);
@@ -206,7 +207,7 @@ static void flush_tlb(void) {
     // flush dcache
     flush_dcache_all();
 
-    uart_puts("flush_tlb\r\n");
+    uart_puts("flush_tlb done\r\n");
 }
 
 void paging_init(uint phy_low, uint phy_hi) {

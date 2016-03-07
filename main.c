@@ -23,12 +23,16 @@ void panic(char* str)
 
 void kmain(void)
 {
+    uint vectbl;
     uart_puts("enter kmain\r\n");
     unsigned char c;
 
     cpu = &cpus[0];
+    vectbl = P2V_WO(VEC_TBL & PDE_MASK);
     init_vmm();
-    kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
+    // why skip vectbl need to check
+    kpt_freerange(align_up(&__end, PT_SZ), vectbl);
+    kpt_freerange(vectbl + PT_SZ, P2V_WO(INIT_KERNMAP));
 
     // interrupt related
     trap_init();
