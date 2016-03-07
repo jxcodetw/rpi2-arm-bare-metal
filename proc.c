@@ -4,6 +4,8 @@
 #include "param.h"
 #include "spinlock.h"
 #include "mmu.h"
+#include "memlayout.h"
+
 
 struct {
     struct spinlock lock;
@@ -52,10 +54,16 @@ static struct proc* allocproc(void) {
     }
 
     // setup user kstack
+    uart_puts("p->kstack: ");
+    print_hex(p->kstack);
     sp = p->kstack + KSTACKSIZE;
+    uart_puts("sp: ");
+    print_hex(sp);
 
     // Leave room for trapframe
     sp -= sizeof(struct trapframe);
+    uart_puts("sp: ");
+    print_hex(sp);
     p->tf = (struct trapframe*)sp;
     //800257c8 <forkret>:
     // ... after forkret finished
@@ -64,9 +72,13 @@ static struct proc* allocproc(void) {
     *(uint*)sp = (uint)trapret;                // will be pop to pc
     sp -= 4;
     *(uint*)sp = (uint)p->kstack + KSTACKSIZE; // will be pop to fp
+    uart_puts("sp: ");
+    print_hex(sp);
 
     // Leave room for context
     sp -= sizeof(struct context);
+    uart_puts("sp: ");
+    print_hex(sp);
     p->context = (struct context*)sp;
     memset(p->context, 0, sizeof(struct context));
 
@@ -78,7 +90,7 @@ static struct proc* allocproc(void) {
 
     // add 4 to skip push{fp, lr}
     // we have pushed the value we want(check the sp-=4 code above)
-    p->context->lr = (uint)forkret+4;
+    p->context->lr = (uint)forkret+8;
 
     return p;
 }
@@ -116,6 +128,7 @@ void userinit(void) {
 }
 
 void scheduler(void) {
+    char c;
     struct proc *p;
 
     for(;;) {
@@ -129,13 +142,24 @@ void scheduler(void) {
 
             curproc = p;
             p->state = RUNNING;
-            switchuvm(p);
             // test
+            uart_puts("scheduler context: ");
+            print_hex((uint)(&cpu->scheduler));
+            uart_puts("curproc context: ");
+            print_hex((uint)(curproc->context));
             uart_puts("scheduler $ ");
             while(1) {
-                uart_putc(uart_getc());
+                c = uart_getc();
+                if (c == '0') {
+                    break;
+                } else {
+                    uart_putc(c);
+                }
             }
-            //swtch(&cpu->scheduler, curproc->context);
+            uart_puts("curproc context->lr: ");
+            print_hex((uint)(curproc->context->lr));
+            //switchuvm(p);
+            swtch(&cpu->scheduler, curproc->context);
 
             // process is done running for now
             // it should have changed its p->state before coming back

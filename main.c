@@ -56,6 +56,7 @@ void kmain(void)
     scheduler();
 
     // if remove these lines kernel will crash...
+    // why~~~
     uart_puts("> ");
     while(1) {
         c = uart_getc();

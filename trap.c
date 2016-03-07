@@ -69,7 +69,7 @@ void dabort_handler (struct trapframe *r)
     print_hex(fa);
     uart_puts(", reason ");
     print_hex(dfs);
-    
+
     dump_trapframe (r);
 }
 
@@ -77,12 +77,16 @@ void dabort_handler (struct trapframe *r)
 void iabort_handler (struct trapframe *r)
 {
     uint ifs;
-    
+
     // read fault status register
     asm("MRC p15, 0, %[r], c5, c0, 0": [r]"=r" (ifs)::);
 
     cli();
-    cprintf ("prefetch abort at: 0x%x (reason: 0x%x)\r\n", r->pc, ifs);
+    uart_puts("prefetch abort at:");
+    print_hex(r->pc);
+    uart_puts(" (reason: ");
+    print_hex(ifs);
+    uart_puts(")\r\n");
     dump_trapframe (r);
 }
 

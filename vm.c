@@ -172,6 +172,8 @@ void paging_init(uint phy_low, uint phy_hi) {
 void inituvm(pde_t *pgdir, char *init, uint sz)
 {
     char *mem;
+    uart_puts("inituvm pgdir: ");
+    print_hex((uint)pgdir);
 
     if (sz >= PTE_SZ) {
         panic("inituvm: more than a page");

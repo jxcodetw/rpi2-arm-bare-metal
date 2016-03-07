@@ -5,9 +5,7 @@
 
 # exec(init, argv)
 start:
-    LDR     r1, =init
-    LDR     r2, =argv
-    MOV     r0, #1
+    ldr     r0, =init
 
 halt:
     wfe
