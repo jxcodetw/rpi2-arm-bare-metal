@@ -146,16 +146,12 @@ static pte_t* walkpgdir(pde_t *pgdir, const void *va, int alloc) {
     pde = &pgdir[PDE_IDX(va)];
 
     if ((*pde) & PE_TYPES) {
-        uart_puts("old\r\n");
         pgtab = (pte_t*)P2V(PT_ADDR(*pde));
     } else {
         if (alloc) {
-            uart_puts("kpt_alloc...");
             if ((pgtab = (pte_t*)kpt_alloc()) == 0) {
-                uart_puts("fail\r\n");
                 return 0;
             }
-            uart_puts("done\r\n");
         } else {
             return 0;
         }
@@ -184,23 +180,10 @@ static int mappages(pde_t *pgdir, void* va, uint size, uint pa, uint ap) {
         }
 
         if (*pte & PE_TYPES) {
-            uart_puts("debug: \r\n");
-            uart_puts("a: ");
-            print_hex(a);
-            uart_puts("pte: ");
-            print_hex(pte);
-            uart_puts("*pte: ");
-            print_hex(*pte);
             panic("remap");
         }
 
-        uart_puts("a: ");
-        print_hex(a);
-        uart_puts("pte addr: ");
-        print_hex(pte);
         *pte = pa | ((ap & 0x3) << 4) | PE_CACHE | PE_BUF | PTE_TYPE;
-        uart_puts("pte  val: ");
-        print_hex(*pte);
 
         if (a == last) {
             break;
@@ -216,19 +199,13 @@ void flush_dcache_all(void);
 
 static void flush_tlb(void) {
     uint val = 0;
+    // invalidate tlb
     asm volatile("mcr p15, 0, %[r], c8, c7, 0" : :[r]"r" (val):);
-    uart_puts("invalidate tlb\r\n");
-    //asm volatile ("dmb" ::: "memory");
+    // flush icache all
     asm volatile ("mcr p15, 0, %0, c7, c5,  0" : : "r" (0) : "memory");
-    asm volatile ("isb" : : :);
+    // flush dcache
     flush_dcache_all();
 
-
-    // invalidate entire data and instruction cache
-    // if we run these two line the kernel will stop
-    // need to check rpi2 spec
-    //asm volatile("mcr p15, 0, %[r], c7, c10, 0"::[r]"r"(val):);
-    //asm volatile("mcr p15, 0, %[r], c7, c11, 0"::[r]"r"(val):);
     uart_puts("flush_tlb\r\n");
 }
 
@@ -237,9 +214,7 @@ void paging_init(uint phy_low, uint phy_hi) {
     // AP_KU means full access
     mappages(P2V(&_kernel_pgtbl), P2V(phy_low), phy_hi-phy_low, phy_low, AP_KU);
     tracemap(P2V(phy_low));
-    uart_puts("before flush");
     flush_tlb();
-    uart_puts("after flush");
 }
 
 // Load the initcode into address 0 of pgdir. sz must be less than a page.

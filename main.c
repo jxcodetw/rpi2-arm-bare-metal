@@ -34,9 +34,9 @@ void kmain(void)
     trap_init();
     pic_init(P2V(VIC_BASE));
     timer_init();
-    uart_puts("trap interrupt setup! now for hell\r\n");
+    uart_puts("trap interrupt setup! now we can capture exception\r\n");
 
-    // fucking mapping
+    // map reset of physical memory for allocation
     paging_init(INIT_KERNMAP, PHYSTOP);
     uart_puts("paging_init done\r\n");
     kmem_freerange(P2V_WO(INIT_KERNMAP), P2V_WO(PHYSTOP));
