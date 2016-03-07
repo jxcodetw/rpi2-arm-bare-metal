@@ -1,5 +1,6 @@
 .global flush_dcache_all
 flush_dcache_all:
+	STMFD   r13!, {r0-r11}
 	dmb					@ ensure ordering with previous memory accesses
 	mrc	p15, 1, r0, c0, c0, 1		@ read clidr
 	ands	r3, r0, #0x7000000		@ extract loc from clidr
@@ -49,4 +50,5 @@ finished:
 	mcr	p15, 2, r10, c0, c0, 0		@ select current cache level in cssr
 	dsb	st
 	isb
+	LDMFD   r13!, {r0-r11}
 	bx	lr

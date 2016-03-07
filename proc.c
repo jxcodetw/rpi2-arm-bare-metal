@@ -141,26 +141,11 @@ void scheduler(void) {
             }
 
             curproc = p;
-            p->state = RUNNING;
-            // test
-            uart_puts("scheduler context: ");
-            print_hex((uint)(&cpu->scheduler));
-            uart_puts("curproc context: ");
-            print_hex((uint)(curproc->context));
-            uart_puts("scheduler $ ");
-            while(1) {
-                c = uart_getc();
-                if (c == '0') {
-                    break;
-                } else {
-                    uart_putc(c);
-                }
-            }
-            uart_puts("curproc context->lr: ");
-            print_hex((uint)(curproc->context->lr));
-            //switchuvm(p);
-            swtch(&cpu->scheduler, curproc->context);
+            switchuvm(p);
 
+            p->state = RUNNING;
+
+            swtch(&cpu->scheduler, curproc->context);
             // process is done running for now
             // it should have changed its p->state before coming back
             // haven't know why

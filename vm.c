@@ -187,6 +187,10 @@ void inituvm(pde_t *pgdir, char *init, uint sz)
 
 void switchuvm(struct proc* p) {
     uint val;
+    uart_puts("switchuvm to : ");
+    uart_puts(p->name);
+    uart_puts("\r\np->pgdir: ");
+    print_hex((uint)p->pgdir);
 
     pushcli();
 
