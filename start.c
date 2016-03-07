@@ -141,7 +141,7 @@ void load_pgtlb()
     _flush_all();
 }
 
-extern void * __bss_start; 
+extern void * __bss_start;
 extern void * __bss_end;
 extern void * __end;
 
@@ -152,11 +152,11 @@ void clear_bss(void) {
 void start(void) {
     _uart_init();
     _uart_puts("starting os...\r\n");
-    
+
     // double map the low memory, required to enable paging
     // we do not map all the physical memory
-    set_bootpgtbl(0, 0, INIT_KERNMAP, 0); 
-    set_bootpgtbl(KERNBASE, 0, INIT_KERNMAP, 0); 
+    set_bootpgtbl(0, 0, INIT_KERNMAP, 0);
+    set_bootpgtbl(KERNBASE, 0, INIT_KERNMAP, 0);
     set_bootpgtbl(VEC_TBL, 0, 1 << PDE_SHIFT, 0);
     set_bootpgtbl(KERNBASE+DEVBASE, DEVBASE, DEV_MEM_SZ, 1);  // DEVICE MAP
     load_pgtlb();

@@ -14,7 +14,7 @@ struct cpu * cpu;
 void panic(char* str)
 {
     cli(); // disable interrupt
-    uart_puts("kernel panic");
+    uart_puts("kernel panic: ");
     if (str != NULL) {
         uart_puts(str);
     }
@@ -29,20 +29,22 @@ void kmain(void)
     cpu = &cpus[0];
     init_vmm();
     kpt_freerange(align_up(&__end, PT_SZ), P2V_WO(INIT_KERNMAP));
-    paging_init(INIT_KERNMAP, PHYSTOP);
-    //kmem_freerange(P2V_WO(INIT_KERNMAP), P2V_WO(PHYSTOP));
 
-    uart_puts("interrupt related...\r\n");
     // interrupt related
     trap_init();
     pic_init(P2V(VIC_BASE));
     timer_init();
-    uart_puts("interrupt related...done\r\n");
+    uart_puts("trap interrupt setup! now for hell\r\n");
+
+    // fucking mapping
+    paging_init(INIT_KERNMAP, PHYSTOP);
+    uart_puts("paging_init done\r\n");
+    kmem_freerange(P2V_WO(INIT_KERNMAP), P2V_WO(PHYSTOP));
 
     // file system init
 
     // init process
-    userinit();
+    //userinit();
 
     // test
     uart_puts("$ ");

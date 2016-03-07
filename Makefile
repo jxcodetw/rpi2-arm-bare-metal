@@ -10,6 +10,7 @@ BUILD_DIR=build
 
 OBJS = \
 	asm.o\
+	cache.o\
 	entry.o\
 	trap_asm.o\
 	swtch.o\
