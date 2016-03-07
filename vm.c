@@ -177,7 +177,7 @@ void inituvm(pde_t *pgdir, char *init, uint sz)
         panic("inituvm: more than a page");
     }
 
-    mem = kpt_alloc();
+    mem = alloc_page();
     memset(mem, 0, PTE_SZ);
     mappages(pgdir, 0, PTE_SZ, v2p(mem), AP_KU);
     memmove(mem, init, sz);

@@ -51,7 +51,8 @@ void kmain(void)
     // file system init
 
     // init process
-    //userinit();
+    userinit();
+    uart_puts("userinit done.\r\n");
 
     // test
     uart_puts("$ ");

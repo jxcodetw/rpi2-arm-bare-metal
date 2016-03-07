@@ -46,7 +46,7 @@ static struct proc* allocproc(void) {
         return NULL;
     }
 
-    if ((p->kstack = kpt_alloc()) == NULL) {
+    if ((p->kstack = alloc_page()) == NULL) {
         p->state = UNUSED;
         return NULL;
     }
@@ -91,37 +91,28 @@ void userinit(void) {
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
-    uart_puts("1");
     p = allocproc();
-    uart_puts("2");
     if (p == NULL) {
         panic("userinit: allocproc error");
     }
-    uart_puts("3");
     if ((p->pgdir = kpt_alloc()) == NULL) {
         panic("userinit: out of memory");
     }
-    uart_puts("4");
 
     inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
 
-    uart_puts("5");
     p->size = PTE_SZ;
     memset(p->tf, 0, sizeof(struct trapframe));
 
-    uart_puts("6");
     p->tf->r14_svc = (uint)error_init;
     p->tf->spsr = spsr_usr();
     p->tf->sp_usr = PTE_SZ; // user stack, happend to be the end of first page for now
     p->tf->lr_usr = 0;
     p->tf->pc = 0;
 
-    uart_puts("7");
     strncpy(p->name, "initcode", sizeof(p->name));
 
-    uart_puts("8\r\n");
     p->state = RUNNABLE;
-    uart_puts("9\r\n");
 }
 
 void scheduler(void) {
