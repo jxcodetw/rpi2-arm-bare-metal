@@ -28,22 +28,25 @@ void kmain(void)
     unsigned char c;
 
     cpu = &cpus[0];
-    vectbl = P2V_WO(VEC_TBL & PDE_MASK);
+    vectbl = P2V_WO(VEC_TBL & PDE_MASK); //  =  0x000F 0000
+    //         we mapped      0xFFF0 0000 to    0x0000 0000  1MB aligned
+    // so when we want to use 0xFFFF 0000 means 0x000F 0000
     init_vmm();
-    // why skip vectbl need to check
     kpt_freerange(align_up(&__end, PT_SZ), vectbl);
     kpt_freerange(vectbl + PT_SZ, P2V_WO(INIT_KERNMAP));
+    uart_puts("init memory for page table.\r\n");
 
     // interrupt related
     trap_init();
+    uart_puts("trap init done.\r\n");
     pic_init(P2V(VIC_BASE));
     timer_init();
-    uart_puts("trap interrupt setup! now we can capture exception\r\n");
+    uart_puts("timer init done.\r\n");
 
     // map reset of physical memory for allocation
     paging_init(INIT_KERNMAP, PHYSTOP);
-    uart_puts("paging_init done\r\n");
     kmem_freerange(P2V_WO(INIT_KERNMAP), P2V_WO(PHYSTOP));
+    uart_puts("two level paging done.\r\n");
 
     // file system init
 

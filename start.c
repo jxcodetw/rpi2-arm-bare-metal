@@ -91,7 +91,6 @@ void set_bootpgtbl (uint32 virt, uint32 phy, uint len, int dev_mem )
             // device memory, make it non-cachable and non-bufferable
             pde |= (AP_KO << 10) | KPDE_TYPE;
         }
-
         // use different page table for user/kernel space
         if (virt < NUM_UPDE) {
             user_pgtbl[virt] = pde;
@@ -157,6 +156,8 @@ void start(void) {
     // we do not map all the physical memory
     set_bootpgtbl(0, 0, INIT_KERNMAP, 0);
     set_bootpgtbl(KERNBASE, 0, INIT_KERNMAP, 0);
+    //         we are mapping 0xFFF0 0000 to    0x0000 0000
+    // so when we want to use 0xFFFF 0000 means 0x000F 0000
     set_bootpgtbl(VEC_TBL, 0, 1 << PDE_SHIFT, 0);
     set_bootpgtbl(KERNBASE+DEVBASE, DEVBASE, DEV_MEM_SZ, 1);  // DEVICE MAP
     load_pgtlb();
