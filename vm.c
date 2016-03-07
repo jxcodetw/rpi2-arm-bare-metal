@@ -182,3 +182,20 @@ void inituvm(pde_t *pgdir, char *init, uint sz)
     mappages(pgdir, 0, PTE_SZ, v2p(mem), AP_KU);
     memmove(mem, init, sz);
 }
+
+void switchuvm(struct proc* p) {
+    uint val;
+
+    pushcli();
+
+    if (p->pgdir == 0) {
+        panic("switchuvm: no pgdir");
+    }
+
+    val = (uint) V2P(p->pgdir) | 0x00;
+
+    asm("MCR p15, 0, %[v], c2, c0, 0": :[v]"r" (val):);
+    flush_tlb();
+
+    popcli();
+}

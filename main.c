@@ -53,9 +53,10 @@ void kmain(void)
     // init process
     userinit();
     uart_puts("userinit done.\r\n");
+    scheduler();
 
-    // test
-    uart_puts("$ ");
+    // if remove these lines kernel will crash...
+    uart_puts("> ");
     while(1) {
         c = uart_getc();
         if (c == '0') {

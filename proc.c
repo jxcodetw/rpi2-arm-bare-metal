@@ -119,7 +119,7 @@ void scheduler(void) {
     struct proc *p;
 
     for(;;) {
-        sti();
+        //sti();
 
         acquire(&ptable.lock);
         for(p = ptable.proc; p < &ptable.proc[NPROC]; ++p) {
@@ -128,9 +128,14 @@ void scheduler(void) {
             }
 
             curproc = p;
-            // switchuvm(p);
             p->state = RUNNING;
-            swtch(&cpu->scheduler, curproc->context);
+            switchuvm(p);
+            // test
+            uart_puts("scheduler $ ");
+            while(1) {
+                uart_putc(uart_getc());
+            }
+            //swtch(&cpu->scheduler, curproc->context);
 
             // process is done running for now
             // it should have changed its p->state before coming back

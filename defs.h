@@ -7,6 +7,7 @@
 struct context;
 struct spinlock;
 struct trapframe;
+struct proc;
 
 typedef void (*ISR) (struct trapframe *tf, int n);
 
@@ -76,6 +77,7 @@ void kmem_freerange(uint32 low, uint32 high);
 void* alloc_page(void);
 void* kpt_alloc(void);
 void inituvm(pde_t *pgdir, char *init, uint sz);
+void switchuvm(struct proc* p);
 
 void paging_init(uint phy_low, uint phy_hi);
 
