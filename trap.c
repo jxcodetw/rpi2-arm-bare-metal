@@ -13,22 +13,8 @@ void cprintf(char *fmt, ...) {
 // trap routine
 void swi_handler (struct trapframe *r)
 {
-    int num;
-    int ret = 0;
     curproc->tf = r;
-    num = curproc->tf->r0;
-    uart_puts("syscall: ");
-    print_hex(num);
-
-    curproc->tf->r0 = ret;
-    /*
-    if (proc->killed)
-        exit();
-    proc->tf = r;
-    syscall ();
-    if (proc->killed)
-        exit();
-        */
+    syscall();
 }
 
 // trap routine

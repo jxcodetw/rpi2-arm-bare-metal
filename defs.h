@@ -1,6 +1,9 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+// number of elements in fixed-size array
+#define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+
 #include "arm.h"
 #include "types.h"
 
@@ -45,6 +48,9 @@ void   acquire(struct spinlock*);
 int    holding(struct spinlock*);
 void   initlock(struct spinlock*, char*);
 void   release(struct spinlock*);
+
+// syscall.c
+void   syscall(void);
 
 // timer.c
 void   timer_init(void);

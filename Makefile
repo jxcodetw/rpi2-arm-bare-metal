@@ -22,6 +22,7 @@ OBJS = \
 	proc.o\
 	start.o\
 	spinlock.o\
+	syscall.o\
 	trap.o\
 	timer.o\
 	uart.o\

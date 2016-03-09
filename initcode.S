@@ -11,6 +11,8 @@ start:
     ldr r2, =argv
     mov r0, #SYS_exec
     swi 0x00
+    mov r0, #SYS_fork
+    swi 0x00
 
 halt:
     wfe
@@ -25,4 +27,3 @@ init:
 argv:
     .word init
     .word 0
-
