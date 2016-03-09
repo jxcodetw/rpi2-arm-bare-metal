@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "arm.h"
 #include "memlayout.h"
+#include "proc.h"
 
 void cprintf(char *fmt, ...) {
     uart_puts("cprintf not implement yet...");
@@ -12,7 +13,14 @@ void cprintf(char *fmt, ...) {
 // trap routine
 void swi_handler (struct trapframe *r)
 {
-    (void)r;
+    int num;
+    int ret = 0;
+    curproc->tf = r;
+    num = curproc->tf->r0;
+    uart_puts("syscall: ");
+    print_hex(num);
+
+    curproc->tf->r0 = ret;
     /*
     if (proc->killed)
         exit();

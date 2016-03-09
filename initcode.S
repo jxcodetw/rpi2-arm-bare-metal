@@ -1,12 +1,16 @@
 # Initial process execs /init.
 
+#include "syscall.h"
+
 
 .globl start
 
 # exec(init, argv)
 start:
-    ldr     r0, =init
-    bl      0x80020e98
+    ldr r1, =init
+    ldr r2, =argv
+    mov r0, #SYS_exec
+    swi 0x00
 
 halt:
     wfe

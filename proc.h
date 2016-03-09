@@ -17,7 +17,7 @@ struct cpu {
 
 extern struct cpu cpus[NCPU];
 extern struct cpu* cpu;
-extern struct proc* proc;
+extern struct proc* curproc;
 
 struct context {
     uint r4;

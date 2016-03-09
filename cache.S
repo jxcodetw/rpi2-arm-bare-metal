@@ -1,3 +1,4 @@
+@ borrow from linux kernel
 .global flush_dcache_all
 flush_dcache_all:
 	STMFD   r13!, {r0-r11}
