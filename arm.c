@@ -45,6 +45,7 @@ bool int_enabled(void) {
 }
 
 void pushcli(void) {
+    uart_puts("pushcli\r\n");
     bool enabled;
     enabled = int_enabled();
 
@@ -57,6 +58,7 @@ void pushcli(void) {
 }
 
 void popcli(void) {
+    uart_puts("popcli\r\n");
     if (int_enabled()) {
         panic("popcli() - interruptible");
     }
@@ -67,6 +69,7 @@ void popcli(void) {
     }
 
     if ((cpu->ncli == 0) && cpu->intena) {
+        uart_puts("pop: sti");
         sti();
     }
 }

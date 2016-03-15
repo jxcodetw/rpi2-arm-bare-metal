@@ -57,13 +57,13 @@ void kmain(void)
 
     // if remove these lines kernel will crash...
     // why~~~
-    uart_puts("> ");
-    while(1) {
-        c = uart_getc();
-        if (c == '0') {
-            sti();
-        } else {
-            uart_putc(c);
-        }
-    }
+    // uart_puts("> ");
+    // while(1) {
+    //     c = uart_getc();
+    //     if (c == '0') {
+    //         sti();
+    //     } else {
+    //         uart_putc(c);
+    //     }
+    // }
 }

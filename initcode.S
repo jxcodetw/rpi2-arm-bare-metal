@@ -9,13 +9,10 @@
 start:
     ldr r1, =init
     ldr r2, =argv
-    mov r0, #SYS_exec
-    swi 0x00
-    mov r0, #SYS_fork
+    mov r0, #SYS_hello
     swi 0x00
 
 halt:
-    wfe
     b halt
 
 # char init[] = "/init\0";

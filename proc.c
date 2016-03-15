@@ -132,7 +132,7 @@ void scheduler(void) {
     struct proc *p;
 
     for(;;) {
-        //sti();
+        sti();
 
         acquire(&ptable.lock);
         for(p = ptable.proc; p < &ptable.proc[NPROC]; ++p) {
@@ -145,7 +145,9 @@ void scheduler(void) {
 
             p->state = RUNNING;
 
+            uart_puts("[scheduler] switching to user program\r\n");
             swtch(&cpu->scheduler, curproc->context);
+            uart_puts("[scheduler] return from user program\r\n");
             // process is done running for now
             // it should have changed its p->state before coming back
             // haven't know why

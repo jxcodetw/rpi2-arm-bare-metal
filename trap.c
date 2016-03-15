@@ -21,6 +21,7 @@ void swi_handler (struct trapframe *r)
 void irq_handler (struct trapframe *r)
 {
     (void)r;
+    uart_puts("[irq_handler] hit\r\n");
     // proc points to the current process. If the kernel is
     // running scheduler, proc is NULL.
     /*

@@ -2,6 +2,17 @@
 #include "proc.h"
 #include "syscall.h"
 
+int sys_hello(void) {
+    uart_puts("SYSCALL: hello world\r\n");
+    sti();
+    if (int_enabled()) {
+        uart_puts("ok");
+    } else {
+        uart_puts("fail");
+    }
+    return 0;
+}
+
 static int (*syscalls[])(void) = {
     [SYS_fork]      0,
     [SYS_exit]      0,
@@ -24,6 +35,7 @@ static int (*syscalls[])(void) = {
     [SYS_link]      0,
     [SYS_mkdir]     0,
     [SYS_close]     0,
+    [SYS_hello]     sys_hello,
 };
 
 void syscall(void) {
