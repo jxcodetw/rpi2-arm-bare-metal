@@ -36,6 +36,7 @@ void   error_init(void);
 void   userinit(void);
 void   scheduler(void);
 void   forkret(void);
+void   yield(void);
 
 // string.c
 void   memmove(char* dest, char* src, int size);

@@ -51,6 +51,7 @@ void kmain(void)
     // file system init
 
     // init process
+    pinit();
     userinit();
     uart_puts("userinit done.\r\n");
     scheduler();

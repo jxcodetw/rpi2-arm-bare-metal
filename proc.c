@@ -20,6 +20,11 @@ extern void trapret(void);
 
 void pinit(void) {
     initlock(&ptable.lock, "ptable");
+    if (holding(&ptable.lock)) {
+        uart_puts("[pinit] holding");
+    } else {
+        uart_puts("[pinit] not holding");
+    }
 }
 
 static struct proc* find_unused_proc(void) {
@@ -186,7 +191,14 @@ void sched(void) {
 
 // don't know what this function for
 void yield(void) {
+    uart_puts("yield entered\r\n");
+    if (holding(&ptable.lock)) {
+        uart_puts("[yeild] holding");
+    } else {
+        uart_puts("[yeild] not holding");
+    }
     acquire(&ptable.lock);
+    uart_puts("yield got ptable lock\r\n");
     curproc->state = RUNNABLE;
     sched();
     release(&ptable.lock);
@@ -196,7 +208,14 @@ void forkret(void) {
     static bool first = true;
 
     // still holding ptable.lock from scheduler.
+    uart_puts("ptable addr:");
+    print_hex(&ptable);
     release(&ptable.lock);
+    if (holding(&ptable.lock)) {
+        uart_puts("[forkret] holding");
+    } else {
+        uart_puts("[forkret] not holding\r\n");
+    }
 
     if (first) {
         // dont know why check first run here

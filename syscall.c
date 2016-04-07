@@ -4,12 +4,6 @@
 
 int sys_hello(void) {
     uart_puts("SYSCALL: hello world\r\n");
-    sti();
-    if (int_enabled()) {
-        uart_puts("ok");
-    } else {
-        uart_puts("fail");
-    }
     return 0;
 }
 

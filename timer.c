@@ -16,7 +16,7 @@ uint ticks;
 static void ack_timer() {
     volatile uint *timer0 = P2V(TIMER0);
     timer0[TIMER_INTCLR] = 1;
-    uart_puts("timer_IRQ hit.\r\n");
+    //uart_puts("timer_IRQ hit.\r\n");
 }
 
 void timer_init() {
@@ -38,9 +38,6 @@ void timer_init() {
 void isr_timer (struct trapframe *tf, int irq_idx) {
     (void)tf;
     (void)irq_idx;
-    acquire(&tickslock);
-    //ticks++;
-    //wakeup(&ticks);
-    release(&tickslock);
     ack_timer();
+    yield();
 }

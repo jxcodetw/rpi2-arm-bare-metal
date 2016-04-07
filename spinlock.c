@@ -17,6 +17,8 @@ void initlock(struct spinlock *lk, char *name)
 // other CPUs to waste time spinning to acquire it.
 void acquire(struct spinlock *lk)
 {
+    uart_puts("acquire: ");
+    print_hex(lk);
     pushcli();		// disable interrupts to avoid deadlock.
     uint32 tmp;
     asm volatile(
@@ -35,13 +37,16 @@ void acquire(struct spinlock *lk)
 // Release the lock.
 void release(struct spinlock *lk)
 {
+    uart_puts("release: ");
+    print_hex(lk);
     lk->locked = 0;
     popcli();
 }
 
 // Check whether this cpu is holding the lock.
-int holding(struct spinlock *lock)
+int holding(struct spinlock *lk)
 {
-    return lock->locked; // && lock->cpu == cpus;
+    uart_puts("holding: ");
+    print_hex(lk);
+    return lk->locked; // && lock->cpu == cpus;
 }
-
