@@ -42,7 +42,10 @@ struct trapframe {
 };
 #endif
 
-#define DIS_INT 0x80
+#define CPSR_IRQ_INHIBIT (1<<7)
+#define CPSR_FIQ_INHIBIT (1<<6)
+#define NO_INT  (CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT)
+#define DIS_INT CPSR_IRQ_INHIBIT
 
 // ARM has 7 modes and banked registers
 #define MODE_MASK   0x1f
@@ -51,5 +54,8 @@ struct trapframe {
 #define IRQ_MODE    0x12
 #define SVC_MODE    0x13
 #define ABT_MODE    0x17
+#define UND_MODE    0x1b
+#define SYS_MODE    0x1f
+
 
 #endif

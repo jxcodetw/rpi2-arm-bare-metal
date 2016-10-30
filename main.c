@@ -1,75 +1,70 @@
 #include "types.h"
+#include "memlayout.h"
 #include "arm.h"
 #include "defs.h"
-#include "timer.h"
+#include "proc.h"
+#include "mmu.h"
+#include "rpi2.h"
 
-void print_hex(uint val) {
-    char digit[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    char number[8] = {'0','0','0','0','0','0','0','0'};
-    uint base = 16;
-    int i = 7;
-    uart_putc('0');
-    uart_putc('x');
+extern void* __end;
 
-    while(val > 0) {
-        number[i--] = digit[val % base];
-        val /= base;
-    }
+struct cpu cpus[NCPU];
+struct cpu * cpu;
 
-    for(i=0;i<8;++i) {
-        uart_putc(number[i]);
-    }
-
-    uart_putc('\r');
-    uart_putc('\n');
-}
-
-unsigned int getcpsr() {
-    unsigned int retval = 0;
-    asm(
-        "mrs %0, cpsr;"
-        : "=r"(retval)
-    );
-    return retval;
-}
-
-unsigned int getcp15c1() {
-    unsigned int retval = 0;
-    asm(
-        "mrc p15, #0, %0, c1, c0, #0;"
-        : "=r"(retval)
-    );
-    return retval;
-}
-
-void kmain(uint32_t r0, uint32_t r1, uint32_t atags)
+void panic(char* str)
 {
-    (void)r0;
-    (void)r1;
-    (void)atags;
+    cli(); // disable interrupt
+    uart_puts("kernel panic: ");
+    if (str != NULL) {
+        uart_puts(str);
+    }
+    while (1);
+}
 
-    char c;
-    uint32 spin = 0;
-    uart_init();
-    uart_puts("Hello, Kernel World!\r\n");
-    //mmu_init();
+void kmain(void)
+{
+    uint vectbl;
+    uart_puts("enter kmain\r\n");
+    unsigned char c;
+
+    cpu = &cpus[0];
+    vectbl = P2V_WO(VEC_TBL & PDE_MASK); //  =  0x000F 0000
+    //         we mapped      0xFFF0 0000 to    0x0000 0000  1MB aligned
+    // so when we want to use 0xFFFF 0000 means 0x000F 0000
+    init_vmm();
+    kpt_freerange(align_up(&__end, PT_SZ), vectbl);
+    kpt_freerange(vectbl + PT_SZ, P2V_WO(INIT_KERNMAP));
+    uart_puts("init memory for page table.\r\n");
+
+    // interrupt related
+    trap_init();
+    uart_puts("trap init done.\r\n");
+    pic_init(P2V(VIC_BASE));
     timer_init();
+    uart_puts("timer init done.\r\n");
 
-    while(true) {
-        c = uart_getc();
-        if (c == '0') {
-            sti();
-            break;
-        } else {
-            uart_putc(c);
-        }
-    }
-    while(1){
-        // after you input '0'
-        // it will break the above loop
-        // falls into this
-        // and when timer interrupt called
-        // it jumps to the interrupt handler and back here
-        uart_puts("spin to win.\r\n");
-    }
+    // map reset of physical memory for allocation
+    paging_init(INIT_KERNMAP, PHYSTOP);
+    kmem_freerange(P2V_WO(INIT_KERNMAP), P2V_WO(PHYSTOP));
+    uart_puts("two level paging done.\r\n");
+
+    // file system init
+
+    // init process
+    pinit();
+    userinit();
+    uart_puts("userinit done.\r\n");
+    scheduler();
+
+    // if remove these lines kernel will crash...
+    // why~~~
+    // uart_puts("> ");
+    // while(1) {
+    //     c = uart_getc();
+    //     if (c == '0') {
+    //         sti();
+    //     } else {
+    //         uart_putc(c);
+    //     }
+    // }
 }
